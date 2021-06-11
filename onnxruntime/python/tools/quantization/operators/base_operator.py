@@ -3,6 +3,8 @@ class QuantOperatorBase:
         self.quantizer = onnx_quantizer
         self.node = onnx_node
 
+    # NOTE - this thing is confusingly named. It essential adds nodes to the graph
+    # TODO - update this method call?
     def quantize(self):
         '''
         Given a node which does not support quantization(Conv, Matmul, Gather), this method
