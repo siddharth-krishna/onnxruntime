@@ -18,8 +18,6 @@ class EmbedLayerNormalizationQuant(QuantOperatorBase):
         (quantized_input_names, zero_point_names, scale_names, nodes) = \
             self.quantizer.quantize_inputs(node, [2, 3, 4])
 
-        import pdb; pdb.set_trace()
-
         #
         # NOTE: the method below will drop in the DequantizeLinear operators in the
         # graph if the node does not support fully quantized inputs.
