@@ -542,6 +542,41 @@ will be calculated.)DOC";
         updateOutputShape(ctx, 1, mask_index_shape);
       });
 
+
+  static const char* QEmbedLayerNorm_ver1_doc = R"DOC(
+TODO(kreeger): Add more documentation here when ready.
+)DOC";
+
+
+  // TODO(kreeger): Let's look around and see how other quantized operators are registered.
+  // TODO(kreeger): Add type constraints
+  ONNX_CONTRIB_OPERATOR_SCHEMA(QEmbedLayerNormalization)
+      .SetDomain(kMSDomain)
+      .SinceVersion(1)
+      .SetDoc(QEmbedLayerNorm_ver1_doc)
+      .Input(0, "input_ids", "input ids", "T")
+      .Input(1, "segment_ids", "segment ids", "T")
+      .Input(2, "word_embedding_quant", "Word Embedding Quant", "T")
+      .Input(3, "word_embedding_scale", "Word Embedding Scale", "T")
+      .Input(4, "word_embedding_zero_point", "Word Embedding Zero Point", "T")
+      .Input(5, "position_embedding_quant", "Position Embedding Quant", "T")
+      .Input(6, "position_embedding_scale", "Position Embedding Scale", "T")
+      .Input(7, "position_embedding_zero_point", "Position Embedding Zero Point", "T")
+      .Input(8, "segment_embedding_quant", "Segment Embedding Quant", "T")
+      .Input(9, "segment_embedding_scale", "Segment Embedding Scale", "T")
+      .Input(10, "segment_embedding_zero_point", "Segment Embedding Zero Point", "T")
+      .Input(11, "layer_norm_weights_quant", "Layer Norm Weights Quant", "T")
+      .Input(12, "layer_norm_weights_scale", "Layer Norm Weights Scale", "T")
+      .Input(13, "layer_norm_weights_zero_point", "Layer Norm Weights Zero Point", "T")
+      .Input(14, "layer_norm_bias_quant", "Layer Norm Bias Quant", "T")
+      .Input(15, "layer_norm_bias_scale", "Layer Norm Bias Scale", "T")
+      .Input(16, "layer_norm_bias_zero_point", "Layer Norm Bias Zero Point", "T")
+      .Input(17, "mask", "Mask", "T", OpSchema::Optional)
+      .TypeAndShapeInferenceFunction([](ONNX_NAMESPACE::InferenceContext& ctx) {
+        ctx.getNumInputs();
+        // TODO(kreeger): write me!
+      });
+
   static const char* FastGelu_ver1_doc = R"DOC(
 GELU (Gaussian Error Linear Unit) approximation: Y=0.5*X*(1+tanh(0.797885*X+0.035677*X*X*X)) with an optional input of bias that will be added to X before GELU.)DOC";
 
