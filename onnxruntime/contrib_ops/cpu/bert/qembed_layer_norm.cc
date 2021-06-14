@@ -17,6 +17,25 @@ Status QEmbedLayerNorm::Compute(OpKernelContext* context) const {
   if (context != nullptr) {
     // compiler foo
   }
+
+  /*
+  Tensors List:
+  [0] input_ids
+  [1] segmend_ids
+  [2] word_embedding_quant
+  [3] word_embedding_scale
+  [4] word_embedding_zp
+  [5] position_embedding_quant
+  [6] position_embedding_scale
+  [7] position_embedding_zp
+  [8] segment_embedding_quant
+  [9] segment_embedding_scale
+  [10] segment_embedding_zp
+  [11] gamma (quant/supprt?)
+  [12] beta (quant/support?)
+  [13] mask (quant/support?)
+  */
+
   return Status::OK();
 }
 
