@@ -18,7 +18,7 @@ class EmbedLayerNormalizationQuant(QuantOperatorBase):
         '''
         Pre-quantized inputs:
         [0] input_ids (int32)
-        [1] segmentd_ids (int32)
+        [1] segment_ids (int32)
         [2] word_embedding (float32)
         [3] position_embedding (float32)
         [4] segment_embedding (float32)
@@ -37,7 +37,7 @@ class EmbedLayerNormalizationQuant(QuantOperatorBase):
         ''' 
         Tensors List:
         [0] input_ids
-        [1] segmend_ids
+        [1] segment_ids
         [2] word_embedding_quant
         [3] word_embedding_scale
         [4] word_embedding_zero_point
@@ -48,13 +48,13 @@ class EmbedLayerNormalizationQuant(QuantOperatorBase):
         [9] segment_embedding_scale
         [10] segment_embedding_zp
         [11] layer_norm_weights_quant
-        [11] layer_norm_weights_scale
-        [12] layer_norm_weights_zero_point
-        [13] layer_norm_bias_quant
-        [14] layer_norm_bias_scale
-        [15] layer_norm_bias_zero_point
+        [12] layer_norm_weights_scale
+        [13] layer_norm_weights_zero_point
+        [14] layer_norm_bias_quant
+        [15] layer_norm_bias_scale
+        [16] layer_norm_bias_zero_point
 
-        [16] mask (quant/support?)
+        [17] mask (quant/support?)
         '''
         inputs = []
 
