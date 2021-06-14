@@ -553,6 +553,7 @@ TODO(kreeger): Add more documentation here when ready.
   ONNX_CONTRIB_OPERATOR_SCHEMA(QEmbedLayerNormalization)
       .SetDomain(kMSDomain)
       .SinceVersion(1)
+      .SetSupportLevel(OpSchema::SupportType::EXPERIMENTAL)
       .SetDoc(QEmbedLayerNorm_ver1_doc)
       .Input(0, "input_ids", "input ids", "T2")
       .Input(1, "segment_ids", "segment ids", "T2")
