@@ -1,14 +1,12 @@
-from numpy import kaiser
 import onnx
 from .base_operator import QuantOperatorBase
 from ..quant_utils import attribute_to_kwarg, ms_domain
 from onnx import onnx_pb as onnx_proto
+
 '''
 Quantize EmbedLayerNormalization
 TODO(kreeger): Add more documentation here.
 '''
-
-
 class EmbedLayerNormalizationQuant(QuantOperatorBase):
     def __init__(self, onnx_quantizer, onnx_node):
         super().__init__(onnx_quantizer, onnx_node)
@@ -17,7 +15,6 @@ class EmbedLayerNormalizationQuant(QuantOperatorBase):
         node = self.node
         assert (node.op_type == "EmbedLayerNormalization")
 
-        # TODO(kreeger): what is the |reduce_range| flag here?
         '''
         Pre-quantized inputs:
         [0] input_ids (int32)
@@ -29,6 +26,7 @@ class EmbedLayerNormalizationQuant(QuantOperatorBase):
         [6] layer_norm_bias (float32)
         [7] mask (int32) (optional)
         '''
+        # TODO(kreeger): what is the |reduce_range| flag here?
         (quantized_input_names, zero_point_names, scale_names, nodes) = \
             self.quantizer.quantize_inputs(node, [2, 3, 4, 5, 6])
 
@@ -116,6 +114,3 @@ class EmbedLayerNormalizationQuant(QuantOperatorBase):
         nodes.append(qembed_layer_norm_node)
 
         self.quantizer.new_nodes += nodes
-
-        import pdb
-        pdb.set_trace()
