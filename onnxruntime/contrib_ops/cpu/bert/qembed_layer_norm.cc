@@ -35,21 +35,10 @@ Status QEmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
     // compiler foo
   }
 
-
-
-  //
-  // TODO(kreeger): LEFT OFF RIGHT HERE.
-  // NEED TO GENERATE SOME TEST DATA IN PYTHON TO ACTUALLY RUN THIS MODEL.
-  // MIGHT CONSIDER JUST WRITING AN OP UNIT TEST FIRST.
-  //
-
-
-
-
   /*
   Tensors List:
   [0] input_ids
-  [1] segmend_ids
+  [1] segment_ids
   [2] word_embedding_quant
   [3] word_embedding_scale
   [4] word_embedding_zp
@@ -63,6 +52,10 @@ Status QEmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
   [12] beta (quant/support?)
   [13] mask (quant/support?)
   */
+
+  //
+  // TODO(kreeger): write me
+  //
 
   return Status::OK();
 }
