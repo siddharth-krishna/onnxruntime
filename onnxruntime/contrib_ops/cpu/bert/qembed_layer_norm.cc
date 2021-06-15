@@ -35,6 +35,17 @@ Status QEmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
     // compiler foo
   }
 
+
+
+  //
+  // TODO(kreeger): LEFT OFF RIGHT HERE.
+  // NEED TO GENERATE SOME TEST DATA IN PYTHON TO ACTUALLY RUN THIS MODEL.
+  // MIGHT CONSIDER JUST WRITING AN OP UNIT TEST FIRST.
+  //
+
+
+
+
   /*
   Tensors List:
   [0] input_ids
