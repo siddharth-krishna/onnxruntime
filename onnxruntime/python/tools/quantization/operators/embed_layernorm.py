@@ -58,6 +58,7 @@ class EmbedLayerNormalizationQuant(QuantOperatorBase):
         '''
         inputs = []
 
+        import pdb; pdb.set_trace()
         # 'input_ids'
         inputs.extend([node.input[0]])
 
@@ -79,20 +80,16 @@ class EmbedLayerNormalizationQuant(QuantOperatorBase):
         inputs.extend([scale_names[2]])
         inputs.extend([zero_point_names[2]])
 
-        # 'segment_embedding_quant', 'segment_embedding_scale', 'segment_embedding_zero_point'
+        # 'layer_norm_weights_quant', 'layer_norm_weights_scale', 'layer_norm_weights_zero_point'
         inputs.extend([quantized_input_names[3]])
         inputs.extend([scale_names[3]])
         inputs.extend([zero_point_names[3]])
 
-        # 'layer_norm_weights_quant', 'layer_norm_weights_scale', 'layer_norm_weights_zero_point'
+        # 'layer_norm_bias_quant', 'layer_norm_bias_scale', 'layer_norm_bias_zero_point'
         inputs.extend([quantized_input_names[4]])
         inputs.extend([scale_names[4]])
         inputs.extend([zero_point_names[4]])
 
-        # 'layer_norm_bias_quant', 'layer_norm_bias_scale', 'layer_norm_bias_zero_point'
-        inputs.extend([quantized_input_names[5]])
-        inputs.extend([scale_names[5]])
-        inputs.extend([zero_point_names[5]])
 
         # mask
         if len(node.input) > 7:
