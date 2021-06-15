@@ -6,6 +6,11 @@
 #include "test/common/cuda_op_test_utils.h"
 #include "test/providers/provider_test_utils.h"
 
+//
+// TODO(kreeger): Refactor this stuff to share the same cannonical inputs for
+//                the float and quantized versions of this op test.
+//
+
 namespace onnxruntime {
 namespace test {
 constexpr float epsilon_ = 1e-12f;
