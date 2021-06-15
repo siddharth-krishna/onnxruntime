@@ -11,7 +11,6 @@
 
 #include <stdio.h>
 
-// #include "SwiftMnist-Bridging-Header.h"
 typedef void *mnist;
 
 mnist *mnist_new ();
