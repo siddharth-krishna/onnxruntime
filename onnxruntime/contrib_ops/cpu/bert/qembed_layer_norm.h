@@ -11,6 +11,7 @@ namespace contrib {
 
 // Quantized version of QEmbedLayerNorm.
 // TODO(kreeger): does this need to be uint8 and/or int8?
+template <typename T>
 class QEmbedLayerNorm final : public OpKernel {
  public:
   explicit QEmbedLayerNorm(const OpKernelInfo& op_kernel_info);

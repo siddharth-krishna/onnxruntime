@@ -573,6 +573,8 @@ TODO(kreeger): Add more documentation here when ready.
       .Input(15, "layer_norm_bias_scale", "Layer Norm Bias Scale", "T")
       .Input(16, "layer_norm_bias_zero_point", "Layer Norm Bias Zero Point", "T1")
       .Input(17, "mask", "Mask", "T2", OpSchema::Optional)
+      .Output(0, "layernorm_out", "LayerNorm Output", "T")
+      .Output(1, "mask_index_out", "Mask Index Output", "T2")
       .TypeConstraint("T1", {"tensor(int8)", "tensor(uint8)"}, "Constrain input and output types to int8 tensors.")
       .TypeConstraint("T2", {"tensor(int32)"}, "Constrain mask index to integer types")
       .TypeConstraint("T", {"tensor(float)"}, "Constrain input and output types to float32 tensors.")

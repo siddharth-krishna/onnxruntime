@@ -3,17 +3,34 @@
 
 #include "qembed_layer_norm.h"
 
+#include "core/framework/op_kernel.h"
+
 namespace onnxruntime {
 namespace contrib {
 
-// TODO - op registration goes here.
+// This op is internal-only, so register outside of onnx:
+#define REGISTER_KERNEL_TYPED(T)                                  \
+  ONNX_OPERATOR_TYPED_KERNEL_EX(                                  \
+      QEmbedLayerNormalization,                                    \
+      kMSDomain,                                                  \
+      1,                                                          \
+      T,                                                          \
+      kCpuExecutionProvider,                                      \
+      KernelDefBuilder()                                          \
+          .TypeConstraint("T", DataTypeImpl::GetTensorType<T>()), \
+      QEmbedLayerNorm<T>);
 
-QEmbedLayerNorm::QEmbedLayerNorm(const OpKernelInfo& op_kernel_info)
+REGISTER_KERNEL_TYPED(float)
+
+
+template <typename T>
+QEmbedLayerNorm<T>::QEmbedLayerNorm(const OpKernelInfo& op_kernel_info)
     : OpKernel(op_kernel_info) {
   // TOOD - anything needed here?
 }
 
-Status QEmbedLayerNorm::Compute(OpKernelContext* context) const {
+template <typename T>
+Status QEmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
   if (context != nullptr) {
     // compiler foo
   }
