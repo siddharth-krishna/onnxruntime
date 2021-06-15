@@ -13,15 +13,14 @@ namespace {
 static void RunTest(
     const std::vector<int32_t>& input_ids_data,
     const std::vector<int32_t>& segment_ids_data,
+    const std::vector<float>& output_data,
     int batch_size,
     int sequence_length,
     int hidden_size) {
   std::vector<int64_t> input_ids_dims = {batch_size, sequence_length};
   std::vector<int64_t> segment_ids_dims = {batch_size, sequence_length};
 
-  // small hack for |hidden_size| input.
-  if (hidden_size > 0) {
-  }
+  std::vector<int64_t> output_dims = {batch_size, sequence_length, hidden_size};
 
   // TODO - update this documentation here!
   // Input and output shapes
@@ -40,6 +39,8 @@ static void RunTest(
 
   tester.AddInput<int32_t>("input_ids", input_ids_dims, input_ids_data);
   tester.AddInput<int32_t>("segment_ids", segment_ids_dims, segment_ids_data);
+
+  tester.AddOutput<float>("output", output_dims, output_data);
 
   tester.Run();
 }
@@ -60,7 +61,16 @@ TEST(QEmbedLayerNormTest, Shim) {
   std::vector<int32_t> segment_ids_data = {
       0, 1};
 
-  RunTest(input_ids_data, segment_ids_data, batch_size, sequence_length, hidden_size);
+  std::vector<float> output_data = {
+      0.36917170882225037, 0.061503000557422638, 1.1598974466323853, -0.85092413425445557,
+      0.74301940202713013, -0.057434864342212677, 0.84324657917022705, -0.85171419382095337};
+
+  RunTest(input_ids_data,
+          segment_ids_data,
+          output_data,
+          batch_size,
+          sequence_length,
+          hidden_size);
 }  // namespace test
 
 }  // namespace test
