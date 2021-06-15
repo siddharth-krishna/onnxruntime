@@ -75,7 +75,7 @@ common::Status DenseTensorToSparseCsr(const DataTransferManager& data_manager, c
   std::vector<int64_t> inner_indicies;
   inner_indicies.reserve(dense_elements / 2);
   std::vector<int64_t> outer_indices;
-  outer_indices.reserve(rows + 1);
+  outer_indices.reserve(static_cast<size_t>(rows) + 1);
 
   Tensor nnz_tensor;
   std::vector<uint8_t> values_8;
