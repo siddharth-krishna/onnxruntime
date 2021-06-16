@@ -14,6 +14,8 @@ namespace embed_layer_norm {
 
 Status CheckInputs(const OpKernelContext* context);
 
+Status CheckQuantizedInputs(const OpKernelContext* context);
+
 }  // namespace embed_layer_norm
 }  // namespace contrib
 }  // namespace onnxruntime

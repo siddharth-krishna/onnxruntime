@@ -103,6 +103,21 @@ Status CheckInputs(const OpKernelContext* context) {
   return Status::OK();
 }
 
+Status CheckQuantizedInputs(const OpKernelContext* context) {
+  const Tensor* input_ids = context->Input<Tensor>(0);
+
+  //
+  // TODO(kreeger): Write me!
+  //
+
+  const auto& input_dims = input_ids->Shape().GetDims();
+  if (input_dims.size() != 2) {
+    return ORT_MAKE_STATUS(ONNXRUNTIME, INVALID_ARGUMENT,
+                           "input_ids is expected to have 2 dimensions, got ", input_dims.size());
+  }
+  return Status::OK();
+}
+
 }  // namespace embed_layer_norm
 }  // namespace contrib
 }  // namespace onnxruntime
