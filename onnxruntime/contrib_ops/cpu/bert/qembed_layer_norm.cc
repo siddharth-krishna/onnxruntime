@@ -72,11 +72,11 @@ Status QEmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
   // TODO(kreeger): Handle other optional tensor inputs here.
   const Tensor* input_ids = context->Input<Tensor>(0);
   const Tensor* segment_ids = context->Input<Tensor>(1);
-  const Tensor* word_embedding = context->Input<Tensor>(3);
-  const Tensor* position_embedding = context->Input<Tensor>(5);
-  const Tensor* segment_embedding = context->Input<Tensor>(8);
-  const Tensor* layer_norm_weight = context->Input<Tensor>(11);
-  const Tensor* layer_norm_bias = context->Input<Tensor>(14);
+  const Tensor* word_embedding = context->Input<Tensor>(2);
+  const Tensor* position_embedding = context->Input<Tensor>(3);
+  const Tensor* segment_embedding = context->Input<Tensor>(4);
+  const Tensor* layer_norm_weight = context->Input<Tensor>(5);
+  const Tensor* layer_norm_bias = context->Input<Tensor>(6);
   const Tensor* mask = context->Input<Tensor>(17);  // optional. nullptr if not provided
 
   // Determine shapes
@@ -102,27 +102,27 @@ Status QEmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
   // TODO(kreeger): consider writing a struct for this? Not sure if it makes sense
   // to have something nice and clean throughout the file.
   float word_embedding_scale;
-  T word_embedding_zero_point;
+  uint8_t word_embedding_zero_point;
   ORT_RETURN_IF_ERROR(GetQuantizedInputTensorValue(context, 7, word_embedding_scale));
   ORT_RETURN_IF_ERROR(GetQuantizedInputTensorValue(context, 12, word_embedding_zero_point));
 
   float position_embedding_scale;
-  T position_embedding_zero_point;
+  uint8_t position_embedding_zero_point;
   ORT_RETURN_IF_ERROR(GetQuantizedInputTensorValue(context, 8, position_embedding_scale));
   ORT_RETURN_IF_ERROR(GetQuantizedInputTensorValue(context, 13, position_embedding_zero_point));
 
   float segment_embedding_scale;
-  T segment_embedding_zero_point;
+  uint8_t segment_embedding_zero_point;
   ORT_RETURN_IF_ERROR(GetQuantizedInputTensorValue(context, 9, segment_embedding_scale));
   ORT_RETURN_IF_ERROR(GetQuantizedInputTensorValue(context, 14, segment_embedding_zero_point));
 
   float layer_norm_weights_scale;
-  T layer_norm_weights_zero_point;
+  uint8_t layer_norm_weights_zero_point;
   ORT_RETURN_IF_ERROR(GetQuantizedInputTensorValue(context, 10, layer_norm_weights_scale));
   ORT_RETURN_IF_ERROR(GetQuantizedInputTensorValue(context, 15, layer_norm_weights_zero_point));
 
   float layer_norm_bias_scale;
-  T layer_norm_bias_zero_point;
+  uint8_t layer_norm_bias_zero_point;
   ORT_RETURN_IF_ERROR(GetQuantizedInputTensorValue(context, 11, layer_norm_bias_scale));
   ORT_RETURN_IF_ERROR(GetQuantizedInputTensorValue(context, 16, layer_norm_bias_zero_point));
   
@@ -143,13 +143,15 @@ Status QEmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
   // TODO(kreeger): Handle missing segment_ids with the quantization params too?
   const int32_t* segment_ids_data =
       (nullptr == segment_ids) ? nullptr : segment_ids->template Data<int32_t>();
-  const T* word_embedding_data = word_embedding->template Data<T>();
-  const T* position_embedding_data = position_embedding->template Data<T>();
+  const uint8_t* word_embedding_data = word_embedding->template Data<uint8_t>();
+  const uint8_t* position_embedding_data = position_embedding->template Data<uint8_t>();
   // TODO(kreeger): Handle missing segment_embedding_data with the quantization params too?
-  const T* segment_embedding_data =
-      (nullptr == segment_embedding) ? nullptr : segment_embedding->template Data<T>();
-  const T* layer_norm_weights_data = layer_norm_weight->template Data<T>();
-  const T* layer_norm_bias_data = layer_norm_bias->template Data<T>();
+  const uint8_t* segment_embedding_data =
+      (nullptr == segment_embedding) ? nullptr : segment_embedding->template Data<uint8_t>();
+  const uint8_t* layer_norm_weights_data = layer_norm_weight->template Data<uint8_t>();
+  const uint8_t* layer_norm_bias_data = layer_norm_bias->template Data<uint8_t>();
+
+  // NOTE: (T) is float right now. Something is up with the kernel registration. Look at this soon.
   T* output_data = output->template MutableData<T>();
 
   // Perform the Op:
@@ -177,10 +179,27 @@ Status QEmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
         }
       }
 
+      /* compiler hacks */
+      if (word_embedding_data != nullptr) {
+      }
+      if (position_embedding_data != nullptr) {
+      }
+      if (segment_embedding_data != nullptr) {
+      }
+      if (layer_norm_weights_data != nullptr) {
+      }
+      if (layer_norm_bias_data != nullptr) {
+      }
+      if (output_data != nullptr) {
+      }
+
+      /*
+      * TODO(kreeger): implement this.
+      * 
       T* y = output_data + index * hidden_size;
-      const T* input_word_embedding = word_embedding_data + word_col_index * hidden_size;
-      const T* input_position_embedding = position_embedding_data + position_col_index * hidden_size;
-      const T* input_segment_embedding = (nullptr == segment_embedding_data) ? nullptr : segment_embedding_data + segment_col_index * hidden_size;
+      const uint8_t* input_word_embedding = word_embedding_data + word_col_index * hidden_size;
+      const uint8_t* input_position_embedding = position_embedding_data + position_col_index * hidden_size;
+      const uint8_t* input_segment_embedding = (nullptr == segment_embedding_data) ? nullptr : segment_embedding_data + segment_col_index * hidden_size;
 
       T sum = static_cast<T>(0);
       for (int i = 0; i < hidden_size; i++) {
@@ -201,6 +220,7 @@ Status QEmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
       for (int i = 0; i < hidden_size; i++) {
         y[i] = y[i] / e * layer_norm_weights_data[i] + layer_norm_bias_data[i];
       }
+      */
     }, 0);
 
     if (failed.load(std::memory_order_acquire)) {
