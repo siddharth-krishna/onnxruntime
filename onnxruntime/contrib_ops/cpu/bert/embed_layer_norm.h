@@ -14,6 +14,7 @@ class EmbedLayerNorm : public OpKernel {
   explicit EmbedLayerNorm(const OpKernelInfo& op_kernel_info);
   Status Compute(OpKernelContext* context) const override;
  private:
+   // TODO(kreeger): Subclass this for the quantization or create a base class!
   float epsilon_;
 };
 }  // namespace contrib

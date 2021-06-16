@@ -41,21 +41,7 @@ static void RunTest(
   std::vector<int64_t> output_dims = {batch_size, sequence_length, hidden_size};
   std::vector<int64_t> mask_index_dims = {batch_size};
 
-  // TODO(kreeger): Update this matrix here.
-  // Input and output shapes
-  //   Input 0 - input_ids                 : (batch_size, sequence_length)
-  //   Input 1 - segment_ids               : (batch_size, sequence_length)
-  //   Input 2 - word_embedding_quant      : (,hidden_size)
-  //   Input 3 - word_embedding_scale      : (float32)
-  //   Input 4 - word_embedding_zero_point : (uint8_t)
-  // 
-  //   Input 3 - position_embedding : (,hidden_size)
-  //   Input 4 - segment_embedding  : (,hidden_size)
-  //   Input 5 - gamma              : (hidden_size)
-  //   Input 6 - beta               : (hidden_size)
-  //   Input 7 - mask               : (batch_size, sequence_length)
-  //   Output 0 - output            : (batch_size, sequence_length, hidden_size)
-  //   Output 1 - mask_index        : (batch_size)
+  // TODO(kreeger): Document input/output matrix values here!
 
   float word_embedding_scale = 0.0f;
   uint8_t word_embedding_zero_point = 0;

@@ -3,6 +3,7 @@
 
 #include "embed_layer_norm_helper.h"
 #include "core/framework/tensorprotoutils.h"
+#include "core/providers/common.h"
 #include "onnx/defs/tensor_proto_util.h"
 
 #include "longformer_attention_base.h"
@@ -23,7 +24,9 @@ Status LongformerAttentionBase__CheckInputs(const LongformerAttentionBase* p,
 
 namespace embed_layer_norm {
 
-Status CheckInputs(const OpKernelContext* context) {
+namespace {
+
+Status CheckInputsInternal(const OpKernelContext* context, int mask_index) {
   const Tensor* input_ids = context->Input<Tensor>(0);
   const Tensor* segment_ids = context->Input<Tensor>(1);  // optional. nullptr if it's distill-bert
   const Tensor* word_embedding = context->Input<Tensor>(2);
@@ -31,7 +34,7 @@ Status CheckInputs(const OpKernelContext* context) {
   const Tensor* segment_embedding = context->Input<Tensor>(4);  // optional. nullptr if it's distill-bert
   const Tensor* gamma = context->Input<Tensor>(5);
   const Tensor* beta = context->Input<Tensor>(6);
-  const Tensor* mask = context->Input<Tensor>(7);  // optional. nullptr if not provided
+  const Tensor* mask = context->Input<Tensor>(mask_index);  // optional. nullptr if not provided
 
   if (nullptr != segment_ids && input_ids->Shape() != segment_ids->Shape()) {
     return ORT_MAKE_STATUS(ONNXRUNTIME, INVALID_ARGUMENT,
@@ -103,18 +106,40 @@ Status CheckInputs(const OpKernelContext* context) {
   return Status::OK();
 }
 
+}  // namespace
+
+Status CheckInputs(const OpKernelContext* context) {
+  return CheckInputsInternal(context, /*mask_index=*/7);
+}
+
 Status CheckQuantizedInputs(const OpKernelContext* context) {
-  const Tensor* input_ids = context->Input<Tensor>(0);
+  // Optional mask index is the last input after quantization values:
+  ORT_RETURN_IF_ERROR(CheckInputsInternal(context, /*mask_index=*/17));
 
-  //
-  // TODO(kreeger): Write me! Refactor CheckInput() and use use the optional mask index thing.
-  //
+  /*
+  Quantized Input Tensors List:
+  [7] word_embedding_scale
+  [8] position_embedding_scale
+  [9] segment_embedding_scale
+  [10] layer_norm_weights_scale
+  [11] layer_norm_bias_scale
+  [12] word_embedding_zero_point
+  [13] position_embedding_zero_point
+  [14] segment_embedding_zero_point
+  [15] layer_norm_weights_zero_point
+  [16] layer_norm_bias_zero_point
+  */
+  ORT_RETURN_IF_NOT(IsScalarOr1ElementVector(context->Input<Tensor>(7)));
+  ORT_RETURN_IF_NOT(IsScalarOr1ElementVector(context->Input<Tensor>(8)));
+  ORT_RETURN_IF_NOT(IsScalarOr1ElementVector(context->Input<Tensor>(9)));
+  ORT_RETURN_IF_NOT(IsScalarOr1ElementVector(context->Input<Tensor>(10)));
+  ORT_RETURN_IF_NOT(IsScalarOr1ElementVector(context->Input<Tensor>(11)));
+  ORT_RETURN_IF_NOT(IsScalarOr1ElementVector(context->Input<Tensor>(12)));
+  ORT_RETURN_IF_NOT(IsScalarOr1ElementVector(context->Input<Tensor>(13)));
+  ORT_RETURN_IF_NOT(IsScalarOr1ElementVector(context->Input<Tensor>(14)));
+  ORT_RETURN_IF_NOT(IsScalarOr1ElementVector(context->Input<Tensor>(15)));
+  ORT_RETURN_IF_NOT(IsScalarOr1ElementVector(context->Input<Tensor>(16)));
 
-  const auto& input_dims = input_ids->Shape().GetDims();
-  if (input_dims.size() != 2) {
-    return ORT_MAKE_STATUS(ONNXRUNTIME, INVALID_ARGUMENT,
-                           "input_ids is expected to have 2 dimensions, got ", input_dims.size());
-  }
   return Status::OK();
 }
 

@@ -17,6 +17,9 @@ class QEmbedLayerNorm final : public OpKernel {
   explicit QEmbedLayerNorm(const OpKernelInfo& op_kernel_info);
 
   Status Compute(OpKernelContext* context) const override;
+
+ private:
+  float epsilon_;
 };
 
 }  // namespace contrib
