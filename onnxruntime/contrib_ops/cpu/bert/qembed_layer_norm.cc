@@ -54,8 +54,11 @@ Status QEmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
   */
 
   //
-  // TODO(kreeger): write me
   //
+  // TODO(kreeger): write me LEFT OFF RIGHT HERE.
+  //
+  //
+
 
   return Status::OK();
 }
