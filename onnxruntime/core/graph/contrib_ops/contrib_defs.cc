@@ -547,6 +547,9 @@ will be calculated.)DOC";
 TODO(kreeger): Add more documentation here when ready.
 )DOC";
 
+  //
+  // TODO(kreeger): Update the inputs here LEFT OFF RIGHT HERE!
+  //
 
   // TODO(kreeger): Let's look around and see how other quantized operators are registered.
   // TODO(kreeger): Add type constraints
@@ -558,19 +561,19 @@ TODO(kreeger): Add more documentation here when ready.
       .Input(0, "input_ids", "input ids", "T2")
       .Input(1, "segment_ids", "segment ids", "T2")
       .Input(2, "word_embedding_quant", "Word Embedding Quant", "T1")
-      .Input(3, "word_embedding_scale", "Word Embedding Scale", "T")
-      .Input(4, "word_embedding_zero_point", "Word Embedding Zero Point", "T1")
-      .Input(5, "position_embedding_quant", "Position Embedding Quant", "T1")
-      .Input(6, "position_embedding_scale", "Position Embedding Scale", "T")
-      .Input(7, "position_embedding_zero_point", "Position Embedding Zero Point", "T1")
-      .Input(8, "segment_embedding_quant", "Segment Embedding Quant", "T1")
+      .Input(3, "position_embedding_quant", "Position Embedding Quant", "T1")
+      .Input(4, "segment_embedding_quant", "Segment Embedding Quant", "T1")
+      .Input(5, "layer_norm_weights_quant", "Layer Norm Weights Quant", "T1")
+      .Input(6, "layer_norm_bias_quant", "Layer Norm Bias Quant", "T1")
+      .Input(7, "word_embedding_scale", "Word Embedding Scale", "T")
+      .Input(8, "position_embedding_scale", "Position Embedding Scale", "T")
       .Input(9, "segment_embedding_scale", "Segment Embedding Scale", "T")
-      .Input(10, "segment_embedding_zero_point", "Segment Embedding Zero Point", "T1")
-      .Input(11, "layer_norm_weights_quant", "Layer Norm Weights Quant", "T1")
-      .Input(12, "layer_norm_weights_scale", "Layer Norm Weights Scale", "T")
-      .Input(13, "layer_norm_weights_zero_point", "Layer Norm Weights Zero Point", "T1")
-      .Input(14, "layer_norm_bias_quant", "Layer Norm Bias Quant", "T1")
-      .Input(15, "layer_norm_bias_scale", "Layer Norm Bias Scale", "T")
+      .Input(10, "layer_norm_weights_scale", "Layer Norm Weights Scale", "T")
+      .Input(11, "layer_norm_bias_scale", "Layer Norm Bias Scale", "T")
+      .Input(12, "word_embedding_zero_point", "Word Embedding Zero Point", "T1")
+      .Input(13, "position_embedding_zero_point", "Position Embedding Zero Point", "T1")
+      .Input(14, "segment_embedding_zero_point", "Segment Embedding Zero Point", "T1")
+      .Input(15, "layer_norm_weights_zero_point", "Layer Norm Weights Zero Point", "T1")
       .Input(16, "layer_norm_bias_zero_point", "Layer Norm Bias Zero Point", "T1")
       .Input(17, "mask", "Mask", "T2", OpSchema::Optional)
       .Output(0, "layernorm_out", "LayerNorm Output", "T")

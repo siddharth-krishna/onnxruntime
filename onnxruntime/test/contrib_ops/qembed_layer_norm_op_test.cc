@@ -11,6 +11,8 @@ namespace test {
 
 namespace {
 
+constexpr float kEpsilon = 1e-12f;
+
 static void RunTest(
     const std::vector<int32_t>& input_ids_data,
     const std::vector<int32_t>& segment_ids_data,
@@ -110,6 +112,9 @@ static void RunTest(
   // Outputs:
   tester.AddOutput<float>("output", output_dims, output_data);
   tester.AddOutput<int32_t>("mask_index", mask_index_dims, mask_index_data);
+
+  // Attributes:
+  tester.AddAttribute("epsilon", kEpsilon);
 
   tester.Run();
 }

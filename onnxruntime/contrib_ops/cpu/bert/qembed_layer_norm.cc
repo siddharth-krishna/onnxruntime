@@ -91,6 +91,13 @@ Status QEmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
   int position_embedding_length = static_cast<int>(position_embedding->Shape()[0]);
   int segment_embedding_length = (nullptr == segment_embedding) ? 0 : static_cast<int>(segment_embedding->Shape()[0]);
 
+  //
+  //
+  // TODO(kreeger): LEFT OFF RIGHT HERE. LOOKS LIKE |T| is |float|. Might have to hard code to 
+  // |uint8_t| for now.
+  //
+  //
+
   // Grab quantization values:
   // TODO(kreeger): consider writing a struct for this? Not sure if it makes sense
   // to have something nice and clean throughout the file.
