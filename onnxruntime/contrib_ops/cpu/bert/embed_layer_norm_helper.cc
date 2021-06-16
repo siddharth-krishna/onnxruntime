@@ -107,7 +107,7 @@ Status CheckQuantizedInputs(const OpKernelContext* context) {
   const Tensor* input_ids = context->Input<Tensor>(0);
 
   //
-  // TODO(kreeger): Write me!
+  // TODO(kreeger): Write me! Refactor CheckInput() and use use the optional mask index thing.
   //
 
   const auto& input_dims = input_ids->Shape().GetDims();
