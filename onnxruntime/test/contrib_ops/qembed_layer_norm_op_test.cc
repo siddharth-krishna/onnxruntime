@@ -88,36 +88,38 @@ static void RunTest(
   tester.AddInput<int32_t>("input_ids", input_ids_dims, input_ids_data);
   tester.AddInput<int32_t>("segment_ids", segment_ids_dims, segment_ids_data);
 
-  // Quantized uint8_t initializer inputs:
+  // Quantized initializer inputs:
   tester.AddInput<uint8_t>("word_embedding_data",
                            word_embedding_dims,
                            word_embedding_data_quant);
-  tester.AddInput<float>("word_embedding_scale", {1}, {word_embedding_scale});
-  tester.AddInput<uint8_t>("word_embedding_zero_point", {1}, {word_embedding_zero_point});
-
   tester.AddInput<uint8_t>("position_embedding_data",
                            position_embedding_dims,
                            position_embedding_data_quant);
-  tester.AddInput<float>("position_embedding_scale", {1}, {position_embedding_scale});
-  tester.AddInput<uint8_t>("position_embedding_zero_point", {1}, {position_embedding_zero_point});
-
   tester.AddInput<uint8_t>("segment_embedding_data",
                            segment_embedding_dims,
                            segment_embedding_data_quant);
-  tester.AddInput<float>("segment_embedding_scale", {1}, {segment_embedding_scale});
-  tester.AddInput<uint8_t>("segment_embedding_zero_point", {1}, {segment_embedding_zero_point});
-
   tester.AddInput<uint8_t>("layer_norm_weight",
                            layer_norm_weight_dims,
                            layer_norm_weight_data_quant);
-  tester.AddInput<float>("layer_norm_weight_scale", {1}, {layer_norm_weight_scale});
-  tester.AddInput<uint8_t>("layer_norm_weight_zero_point", {1}, {layer_norm_weight_zero_point});
-
   tester.AddInput<uint8_t>("layer_norm_bias",
                            layer_norm_bias_dims,
                            layer_norm_bias_data_quant);
+
+  // Quantized scales:
+  tester.AddInput<float>("word_embedding_scale", {1}, {word_embedding_scale});
+  tester.AddInput<float>("position_embedding_scale", {1}, {position_embedding_scale});
+  tester.AddInput<float>("segment_embedding_scale", {1}, {segment_embedding_scale});
+  tester.AddInput<float>("layer_norm_weight_scale", {1}, {layer_norm_weight_scale});
   tester.AddInput<float>("layer_norm_bias_scale", {1}, {layer_norm_bias_scale});
+
+  // Quantized zero points:
+  tester.AddInput<uint8_t>("word_embedding_zero_point", {1}, {word_embedding_zero_point});
+  tester.AddInput<uint8_t>("position_embedding_zero_point", {1}, {position_embedding_zero_point});
+  tester.AddInput<uint8_t>("segment_embedding_zero_point", {1}, {segment_embedding_zero_point});
+  tester.AddInput<uint8_t>("layer_norm_weight_zero_point", {1}, {layer_norm_weight_zero_point});
   tester.AddInput<uint8_t>("layer_norm_bias_zero_point", {1}, {layer_norm_bias_zero_point});
+
+  // TODO(kreeger): Add optional mask arg here! 
 
   // Outputs:
   tester.AddOutput<float>("output", output_dims, output_data);
