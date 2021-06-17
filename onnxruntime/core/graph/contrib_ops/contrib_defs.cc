@@ -547,12 +547,7 @@ will be calculated.)DOC";
 TODO(kreeger): Add more documentation here when ready.
 )DOC";
 
-  //
-  // TODO(kreeger): Update the inputs here LEFT OFF RIGHT HERE!
-  //
-
   // TODO(kreeger): Let's look around and see how other quantized operators are registered.
-  // TODO(kreeger): Add type constraints
   ONNX_CONTRIB_OPERATOR_SCHEMA(QEmbedLayerNormalization)
       .SetDomain(kMSDomain)
       .SinceVersion(1)

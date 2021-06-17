@@ -159,7 +159,8 @@ Status QEmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
     std::atomic_bool failed{false};
 
     int n = batch_size * sequence_length;
-    concurrency::ThreadPool::TryBatchParallelFor(context->GetOperatorThreadPool(), n, [=, &failed](ptrdiff_t index) {
+    concurrency::ThreadPool::TryBatchParallelFor(
+        context->GetOperatorThreadPool(), n, [=, &failed](ptrdiff_t index) {
       int word_col_index = input_ids_data[index];
       if (word_col_index < 0 || word_col_index >= word_embedding_length) {
         failed.store(true, std::memory_order_release);
@@ -179,7 +180,7 @@ Status QEmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
         }
       }
 
-      /* compiler hacks */
+      /* compiler hacks for successful build. */
       if (word_embedding_data != nullptr) {
       }
       if (position_embedding_data != nullptr) {
@@ -232,9 +233,10 @@ Status QEmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
   if (nullptr != mask) {
     const int32_t* mask_data = mask->template Data<int32_t>();
     for (int b = 0; b < batch_size; b++) {
-      mask_index->template MutableData<int32_t>()[b] = static_cast<int32_t>(std::count_if(mask_data + (b * sequence_length),
-                                                                                          mask_data + (b * sequence_length) + sequence_length,
-                                                                                          [](int v) { return v == 1; }));
+      mask_index->template MutableData<int32_t>()[b] =
+          static_cast<int32_t>(std::count_if(mask_data + (b * sequence_length),
+                                             mask_data + (b * sequence_length) + sequence_length,
+                                             [](int v) { return v == 1; }));
     }
   } else {
     memset(mask_index->template MutableData<int32_t>(), 0, batch_size * sizeof(int32_t));
