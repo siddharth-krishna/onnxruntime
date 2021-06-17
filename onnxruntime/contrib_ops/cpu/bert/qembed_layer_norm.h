@@ -10,7 +10,8 @@ namespace onnxruntime {
 namespace contrib {
 
 // Quantized version of QEmbedLayerNorm.
-// TODO(kreeger): does this need to be uint8 and/or int8?
+// TODO(kreeger): T is currently |float| in the registration.
+//                Decided if another typename is needed. 
 template <typename T>
 class QEmbedLayerNorm final : public OpKernel {
  public:

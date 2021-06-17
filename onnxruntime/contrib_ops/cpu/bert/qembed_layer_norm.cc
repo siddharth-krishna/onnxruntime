@@ -92,13 +92,6 @@ Status QEmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
   int segment_embedding_length =
       (nullptr == segment_embedding) ? 0 : static_cast<int>(segment_embedding->Shape()[0]);
 
-  //
-  //
-  // TODO(kreeger): LEFT OFF RIGHT HERE. LOOKS LIKE |T| is |float|. Might have to hard code to 
-  // |uint8_t| for now.
-  //
-  //
-
   // Grab quantization values:
   // TODO(kreeger): consider writing a struct for this? Not sure if it makes sense
   // to have something nice and clean throughout the file.
@@ -152,7 +145,7 @@ Status QEmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
   const uint8_t* layer_norm_weights_data = layer_norm_weight->template Data<uint8_t>();
   const uint8_t* layer_norm_bias_data = layer_norm_bias->template Data<uint8_t>();
 
-  // NOTE: (T) is float right now. Something is up with the kernel registration. Look at this soon.
+  // TODO(kreeger): (T) is float right now. Something is up with the kernel registration.
   T* output_data = output->template MutableData<T>();
 
   // Perform the Op:
@@ -196,6 +189,34 @@ Status QEmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
       }
 
       /*
+      // Grab inputs for the embeddings for the current batch index:
+      const uint8_t* input_word_embedding = word_embedding_data + (word_col_index * hidden_size);
+      const uint8_t* input_position_embedding =
+          position_embedding_data + (position_col_index * hidden_size);
+      const uint8_t* input_segment_embedding = nullptr;
+      if (segment_embedding_data != nullptr) {
+        input_segment_embedding = segment_embedding_data + (segment_col_index * hidden_size);
+      }
+
+      // TODO(kreeger): Consider scaling input here for each batch instead of full integer math...
+
+      T* output = output_data + (index * hidden_size);
+
+      T sum = static_cast<T>(0);
+      for (int i = 0; i < hidden_size; ++i) {
+        T subtotal = input_word_embedding[i] + input_position_embedding[i];
+        if (segment_embedding_data != nullptr) {
+          subtotal += input_segment_embedding[i];
+        }
+        output[i] = subtotal;
+
+        sum += subtotal;
+      }
+      */
+      
+      
+
+      /*
       * TODO(kreeger): implement this.
       * 
       T* y = output_data + index * hidden_size;
@@ -234,6 +255,7 @@ Status QEmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
   if (nullptr != mask) {
     const int32_t* mask_data = mask->template Data<int32_t>();
     for (int b = 0; b < batch_size; b++) {
+      // TODO(kreeger): Fix static cast warning here:
       mask_index->template MutableData<int32_t>()[b] =
           static_cast<int32_t>(std::count_if(mask_data + (b * sequence_length),
                                              mask_data + (b * sequence_length) + sequence_length,
