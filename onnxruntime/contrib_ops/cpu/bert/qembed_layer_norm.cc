@@ -89,7 +89,8 @@ Status QEmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
 
   int word_embedding_length = static_cast<int>(word_embedding->Shape()[0]);
   int position_embedding_length = static_cast<int>(position_embedding->Shape()[0]);
-  int segment_embedding_length = (nullptr == segment_embedding) ? 0 : static_cast<int>(segment_embedding->Shape()[0]);
+  int segment_embedding_length =
+      (nullptr == segment_embedding) ? 0 : static_cast<int>(segment_embedding->Shape()[0]);
 
   //
   //
