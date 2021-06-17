@@ -3,10 +3,11 @@
 #Please don't put CentOS or manylinux2014 related stuffs here.
 set -e -o -x
 id
-SCRIPT_DIR=$BUILD_SOURCESDIRECTORY
+SOURCE_ROOT=$BUILD_SOURCESDIRECTORY
+SCRIPT_DIR=$BUILD_SOURCESDIRECTORY/tools/ci_build/github/linux
 BUILD_DIR=$BUILD_BINARIESDIRECTORY
 
-SOURCE_ROOT=$(realpath $SCRIPT_DIR/../../../../)
+
 YOCTO_VERSION="4.19"
 INSTALL_DEPS_DISTRIBUTED_SETUP=false
 ORTMODULE_BUILD=false
@@ -120,7 +121,6 @@ if [ -v EXTRA_IMAGE_TAG ]; then
 fi
 
 set +e
-mkdir -p ~/.cache/onnxruntime
 mkdir -p ~/.onnx
 
 if [ -z "$NIGHTLY_BUILD" ]; then
