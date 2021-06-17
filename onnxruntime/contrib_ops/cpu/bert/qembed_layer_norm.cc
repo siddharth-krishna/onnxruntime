@@ -12,11 +12,17 @@ namespace contrib {
 
 namespace {
 
+// TODO(kreeger): Is there a good spot for this function globally to be shared?
 template <typename T>
 Status GetQuantizedInputTensorValue(OpKernelContext* context, int index, T& value) {
   const Tensor* tensor = context->Input<Tensor>(index);
   value = *(tensor->template Data<T>());
   return Status::OK();
+}
+
+template <typename T>
+inline float Dequantize(T value, float scale, T zero_point) {
+  return static_cast<float>(static_cast<int32_t>(value) - zero_point) * scale;
 }
 
 }  // namespace
@@ -142,6 +148,7 @@ Status QEmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
   // TODO(kreeger): Handle missing segment_embedding_data with the quantization params too?
   const uint8_t* segment_embedding_data =
       (nullptr == segment_embedding) ? nullptr : segment_embedding->template Data<uint8_t>();
+  // TODO(kreeger): weight vs. weights
   const uint8_t* layer_norm_weights_data = layer_norm_weight->template Data<uint8_t>();
   const uint8_t* layer_norm_bias_data = layer_norm_bias->template Data<uint8_t>();
 
@@ -174,21 +181,6 @@ Status QEmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
         }
       }
 
-      /* compiler hacks for successful build. */
-      if (word_embedding_data != nullptr) {
-      }
-      if (position_embedding_data != nullptr) {
-      }
-      if (segment_embedding_data != nullptr) {
-      }
-      if (layer_norm_weights_data != nullptr) {
-      }
-      if (layer_norm_bias_data != nullptr) {
-      }
-      if (output_data != nullptr) {
-      }
-
-      /*
       // Grab inputs for the embeddings for the current batch index:
       const uint8_t* input_word_embedding = word_embedding_data + (word_col_index * hidden_size);
       const uint8_t* input_position_embedding =
@@ -198,52 +190,42 @@ Status QEmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
         input_segment_embedding = segment_embedding_data + (segment_col_index * hidden_size);
       }
 
-      // TODO(kreeger): Consider scaling input here for each batch instead of full integer math...
-
       T* output = output_data + (index * hidden_size);
 
       T sum = static_cast<T>(0);
       for (int i = 0; i < hidden_size; ++i) {
-        T subtotal = input_word_embedding[i] + input_position_embedding[i];
+        T subtotal = Dequantize(input_word_embedding[i],
+                                word_embedding_scale,
+                                word_embedding_zero_point) +
+                     Dequantize(input_position_embedding[i],
+                                position_embedding_scale,
+                                position_embedding_zero_point);
         if (segment_embedding_data != nullptr) {
           subtotal += input_segment_embedding[i];
         }
         output[i] = subtotal;
-
         sum += subtotal;
       }
-      */
-      
-      
 
-      /*
-      * TODO(kreeger): implement this.
-      * 
-      T* y = output_data + index * hidden_size;
-      const uint8_t* input_word_embedding = word_embedding_data + word_col_index * hidden_size;
-      const uint8_t* input_position_embedding = position_embedding_data + position_col_index * hidden_size;
-      const uint8_t* input_segment_embedding = (nullptr == segment_embedding_data) ? nullptr : segment_embedding_data + segment_col_index * hidden_size;
-
-      T sum = static_cast<T>(0);
-      for (int i = 0; i < hidden_size; i++) {
-        T subtotal = input_word_embedding[i] + input_position_embedding[i];
-        if (nullptr != segment_embedding_data)
-          subtotal += input_segment_embedding[i];
-        y[i] = subtotal;
-        sum += subtotal;
-      }
       T mean = sum / hidden_size;
       sum = 0;
+
       for (int i = 0; i < hidden_size; i++) {
-        T a = y[i] - mean;
-        y[i] = a;
+        T a = output[i] - mean;
+        output[i] = a;
         sum += a * a;
       }
+
       T e = sqrt(sum / hidden_size + static_cast<T>(epsilon_));
       for (int i = 0; i < hidden_size; i++) {
-        y[i] = y[i] / e * layer_norm_weights_data[i] + layer_norm_bias_data[i];
+        T cur_weight = Dequantize(layer_norm_weights_data[i],
+                                  layer_norm_weights_scale,
+                                  layer_norm_weights_zero_point);
+        T cur_bias = Dequantize(layer_norm_bias_data[i],
+                                layer_norm_bias_scale,
+                                layer_norm_bias_zero_point);
+        output[i] = output[i] / e * cur_weight + cur_bias;
       }
-      */
     }, 0);
 
     if (failed.load(std::memory_order_acquire)) {

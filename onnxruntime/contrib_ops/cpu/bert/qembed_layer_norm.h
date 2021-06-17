@@ -10,13 +10,12 @@ namespace onnxruntime {
 namespace contrib {
 
 // Quantized version of QEmbedLayerNorm.
-// TODO(kreeger): T is currently |float| in the registration.
-//                Decided if another typename is needed. 
+// TODO(kreeger): Subclass or create a common interface between this implementation
+//                and the F32 version.
 template <typename T>
 class QEmbedLayerNorm final : public OpKernel {
  public:
   explicit QEmbedLayerNorm(const OpKernelInfo& op_kernel_info);
-
   Status Compute(OpKernelContext* context) const override;
 
  private:

@@ -158,6 +158,12 @@ TEST(QEmbedLayerNormTest, Shim) {
   std::vector<float> layer_norm_bias_data = {
       0.6f, 0.2f, 0.5f, -0.6f};
 
+  //
+  //
+  // TODO(kreeger): Accuracy fun here. Looks like these outputs do not match up quantized.
+  //                Something to look at - could be the QDQ thing reduces quality here anyways.
+  //
+  //
   std::vector<float> output_data = {
       0.36917170882225037, 0.061503000557422638, 1.1598974466323853, -0.85092413425445557,
       0.74301940202713013, -0.057434864342212677, 0.84324657917022705, -0.85171419382095337};

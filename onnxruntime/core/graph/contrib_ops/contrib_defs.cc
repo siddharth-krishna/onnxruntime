@@ -547,7 +547,6 @@ will be calculated.)DOC";
 TODO(kreeger): Add more documentation here when ready.
 )DOC";
 
-  // TODO(kreeger): Let's look around and see how other quantized operators are registered.
   ONNX_CONTRIB_OPERATOR_SCHEMA(QEmbedLayerNormalization)
       .SetDomain(kMSDomain)
       .SinceVersion(1)
@@ -578,7 +577,9 @@ TODO(kreeger): Add more documentation here when ready.
       .TypeConstraint("T", {"tensor(float)"}, "Constrain input and output types to float32 tensors.")
       .TypeAndShapeInferenceFunction([](ONNX_NAMESPACE::InferenceContext& ctx) {
         ctx.getNumInputs();
+        //
         // TODO(kreeger): write me!
+        //
       });
 
   static const char* FastGelu_ver1_doc = R"DOC(
