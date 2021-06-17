@@ -12,12 +12,10 @@ namespace contrib {
 
 namespace {
 
-// TODO(kreeger): Is there a good spot for this function globally to be shared?
 template <typename T>
-Status GetQuantizedInputTensorValue(OpKernelContext* context, int index, T& value) {
+T GetQuantizedInputTensorValue(OpKernelContext* context, int index) {
   const Tensor* tensor = context->Input<Tensor>(index);
-  value = *(tensor->template Data<T>());
-  return Status::OK();
+  return *(tensor->template Data<T>());
 }
 
 template <typename T>
@@ -81,7 +79,7 @@ Status QEmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
   const Tensor* word_embedding = context->Input<Tensor>(2);
   const Tensor* position_embedding = context->Input<Tensor>(3);
   const Tensor* segment_embedding = context->Input<Tensor>(4);
-  const Tensor* layer_norm_weight = context->Input<Tensor>(5);
+  const Tensor* layer_norm_weights = context->Input<Tensor>(5);
   const Tensor* layer_norm_bias = context->Input<Tensor>(6);
   const Tensor* mask = context->Input<Tensor>(17);  // optional. nullptr if not provided
 
@@ -99,32 +97,20 @@ Status QEmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
       (nullptr == segment_embedding) ? 0 : static_cast<int>(segment_embedding->Shape()[0]);
 
   // Grab quantization values:
-  // TODO(kreeger): consider writing a struct for this? Not sure if it makes sense
-  // to have something nice and clean throughout the file.
-  float word_embedding_scale;
-  uint8_t word_embedding_zero_point;
-  ORT_RETURN_IF_ERROR(GetQuantizedInputTensorValue(context, 7, word_embedding_scale));
-  ORT_RETURN_IF_ERROR(GetQuantizedInputTensorValue(context, 12, word_embedding_zero_point));
+  float word_embedding_scale = GetQuantizedInputTensorValue<float>(context, 7);
+  uint8_t word_embedding_zero_point = GetQuantizedInputTensorValue<uint8_t>(context, 12); 
 
-  float position_embedding_scale;
-  uint8_t position_embedding_zero_point;
-  ORT_RETURN_IF_ERROR(GetQuantizedInputTensorValue(context, 8, position_embedding_scale));
-  ORT_RETURN_IF_ERROR(GetQuantizedInputTensorValue(context, 13, position_embedding_zero_point));
+  float position_embedding_scale = GetQuantizedInputTensorValue<float>(context, 8);
+  uint8_t position_embedding_zero_point = GetQuantizedInputTensorValue<uint8_t>(context, 13);
 
-  float segment_embedding_scale;
-  uint8_t segment_embedding_zero_point;
-  ORT_RETURN_IF_ERROR(GetQuantizedInputTensorValue(context, 9, segment_embedding_scale));
-  ORT_RETURN_IF_ERROR(GetQuantizedInputTensorValue(context, 14, segment_embedding_zero_point));
+  float segment_embedding_scale = GetQuantizedInputTensorValue<float>(context, 9);
+  uint8_t segment_embedding_zero_point = GetQuantizedInputTensorValue<uint8_t>(context, 14);
 
-  float layer_norm_weights_scale;
-  uint8_t layer_norm_weights_zero_point;
-  ORT_RETURN_IF_ERROR(GetQuantizedInputTensorValue(context, 10, layer_norm_weights_scale));
-  ORT_RETURN_IF_ERROR(GetQuantizedInputTensorValue(context, 15, layer_norm_weights_zero_point));
+  float layer_norm_weights_scale = GetQuantizedInputTensorValue<float>(context, 10);
+  uint8_t layer_norm_weights_zero_point = GetQuantizedInputTensorValue<uint8_t>(context, 15);
 
-  float layer_norm_bias_scale;
-  uint8_t layer_norm_bias_zero_point;
-  ORT_RETURN_IF_ERROR(GetQuantizedInputTensorValue(context, 11, layer_norm_bias_scale));
-  ORT_RETURN_IF_ERROR(GetQuantizedInputTensorValue(context, 16, layer_norm_bias_zero_point));
+  float layer_norm_bias_scale = GetQuantizedInputTensorValue<float>(context, 11);
+  uint8_t layer_norm_bias_zero_point = GetQuantizedInputTensorValue<uint8_t>(context, 16);
   
   // TODO(kreeger): Move verbose descriptions here.
   /*
@@ -149,10 +135,9 @@ Status QEmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
   const uint8_t* segment_embedding_data =
       (nullptr == segment_embedding) ? nullptr : segment_embedding->template Data<uint8_t>();
   // TODO(kreeger): weight vs. weights
-  const uint8_t* layer_norm_weights_data = layer_norm_weight->template Data<uint8_t>();
+  const uint8_t* layer_norm_weights_data = layer_norm_weights->template Data<uint8_t>();
   const uint8_t* layer_norm_bias_data = layer_norm_bias->template Data<uint8_t>();
 
-  // TODO(kreeger): (T) is float right now. Something is up with the kernel registration.
   T* output_data = output->template MutableData<T>();
 
   // Perform the Op:
@@ -201,7 +186,9 @@ Status QEmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
                                 position_embedding_scale,
                                 position_embedding_zero_point);
         if (segment_embedding_data != nullptr) {
-          subtotal += input_segment_embedding[i];
+          subtotal += Dequantize(input_segment_embedding[i],
+                                 segment_embedding_scale,
+                                 segment_embedding_zero_point);
         }
         output[i] = subtotal;
         sum += subtotal;

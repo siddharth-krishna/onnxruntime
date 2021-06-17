@@ -60,22 +60,16 @@ class EmbedLayerNormalizationQuant(QuantOperatorBase):
 
         # 'input_ids'
         inputs.extend([node.input[0]])
-
         # 'segment_ids'
         inputs.extend([node.input[1]])
-
         # 'word_embedding_quant'
         inputs.extend([quantized_input_names[0]])
-
         # 'position_embedding_quant'
         inputs.extend([quantized_input_names[1]])
-
         # 'segment_embedding_quant'
         inputs.extend([quantized_input_names[2]])
-
         # 'layer_norm_weights_quant'
         inputs.extend([quantized_input_names[3]])
-
         # 'layer_norm_bias_quant'
         inputs.extend([quantized_input_names[4]])
 
@@ -104,10 +98,6 @@ class EmbedLayerNormalizationQuant(QuantOperatorBase):
             kwargs.update(attribute_to_kwarg(attribute))
         kwargs["domain"] = ms_domain
 
-        # TODO(kreeger): Update this doc here.
-        # NOTE: since ORT outputs zp & scale as tensors this graph needs some additional output.
-        # The consumer of layernorm_out* tends to be a QAttention layer that already takes quantized
-        # inputs with the additional tensors through a DynamicQuantizeLinear Op.
         qembed_layer_norm_node = onnx.helper.make_node("QEmbedLayerNormalization", inputs, node.output,
                                                        qembed_layer_norm_name, **kwargs)
         nodes.append(qembed_layer_norm_node)

@@ -43,8 +43,6 @@ static void RunTest(
   std::vector<int64_t> output_dims = {batch_size, sequence_length, hidden_size};
   std::vector<int64_t> mask_index_dims = {batch_size};
 
-  // TODO(kreeger): Document input/output matrix values here!
-
   float word_embedding_scale = 0.0f;
   uint8_t word_embedding_zero_point = 0;
   std::vector<uint8_t> word_embedding_data_quant = QuantizeLinear<uint8_t, /*symmetric=*/false>(
