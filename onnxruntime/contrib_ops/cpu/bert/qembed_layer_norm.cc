@@ -44,9 +44,7 @@ REGISTER_KERNEL_TYPED(float)
 
 template <typename T>
 QEmbedLayerNorm<T>::QEmbedLayerNorm(const OpKernelInfo& op_kernel_info)
-    : OpKernel(op_kernel_info) {
-  ORT_ENFORCE(op_kernel_info.GetAttr<float>("epsilon", &epsilon_).IsOK());
-  ORT_ENFORCE(epsilon_ >= 0);
+    : EmbedLayerNorm(op_kernel_info) {
 }
 
 template <typename T>
@@ -136,12 +134,13 @@ Status QEmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
   // TODO(kreeger): Handle missing segment_embedding_data with the quantization params too?
   const uint8_t* segment_embedding_data =
       (nullptr == segment_embedding) ? nullptr : segment_embedding->template Data<uint8_t>();
-  // TODO(kreeger): weight vs. weights
   const uint8_t* layer_norm_weights_data = layer_norm_weights->template Data<uint8_t>();
   const uint8_t* layer_norm_bias_data = layer_norm_bias->template Data<uint8_t>();
 
   T* output_data = output->template MutableData<T>();
 
+  // TODO(kreeger): consider using std::function<> here to reuse this code w/ the floating
+  //                point version. See qlinear_binary_op_test.cc:~141
   // Perform the Op:
   {
     std::atomic_bool failed{false};

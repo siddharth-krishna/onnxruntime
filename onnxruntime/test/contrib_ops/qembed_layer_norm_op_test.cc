@@ -45,28 +45,33 @@ static void RunTest(
 
   float word_embedding_scale = 0.0f;
   uint8_t word_embedding_zero_point = 0;
-  std::vector<uint8_t> word_embedding_data_quant = QuantizeLinear<uint8_t, /*symmetric=*/false>(
-      word_embedding_data, word_embedding_scale, word_embedding_zero_point);
+  std::vector<uint8_t> word_embedding_data_quant =
+      QuantizeLinear<uint8_t, /*symmetric=*/false>(
+          word_embedding_data, word_embedding_scale, word_embedding_zero_point);
 
   float position_embedding_scale = 0.0f;
   uint8_t position_embedding_zero_point = 0;
-  std::vector<uint8_t> position_embedding_data_quant = QuantizeLinear<uint8_t, /*symmetric=*/false>(
-      position_embedding_data, position_embedding_scale, position_embedding_zero_point);
+  std::vector<uint8_t> position_embedding_data_quant =
+      QuantizeLinear<uint8_t, /*symmetric=*/false>(
+          position_embedding_data, position_embedding_scale, position_embedding_zero_point);
 
   float segment_embedding_scale = 0.0f;
   uint8_t segment_embedding_zero_point = 0;
-  std::vector<uint8_t> segment_embedding_data_quant = QuantizeLinear<uint8_t, /*symmetric=*/false>(
-      segment_embedding_data, segment_embedding_scale, segment_embedding_zero_point);
+  std::vector<uint8_t> segment_embedding_data_quant =
+      QuantizeLinear<uint8_t, /*symmetric=*/false>(
+          segment_embedding_data, segment_embedding_scale, segment_embedding_zero_point);
 
   float layer_norm_weight_scale = 0.0f;
   uint8_t layer_norm_weight_zero_point = 0;
-  std::vector<uint8_t> layer_norm_weight_data_quant = QuantizeLinear<uint8_t, /*symmetric=*/false>(
-      layer_norm_weight_data, layer_norm_weight_scale, layer_norm_weight_zero_point);
+  std::vector<uint8_t> layer_norm_weight_data_quant =
+      QuantizeLinear<uint8_t, /*symmetric=*/false>(
+          layer_norm_weight_data, layer_norm_weight_scale, layer_norm_weight_zero_point);
 
   float layer_norm_bias_scale = 0.0f;
   uint8_t layer_norm_bias_zero_point = 0;
-  std::vector<uint8_t> layer_norm_bias_data_quant = QuantizeLinear<uint8_t, /*symmetric=*/false>(
-      layer_norm_bias_data, layer_norm_bias_scale, layer_norm_bias_zero_point);
+  std::vector<uint8_t> layer_norm_bias_data_quant =
+      QuantizeLinear<uint8_t, /*symmetric=*/false>(
+          layer_norm_bias_data, layer_norm_bias_scale, layer_norm_bias_zero_point);
 
   OpTester tester("QEmbedLayerNormalization", 1, onnxruntime::kMSDomain);
 
@@ -92,18 +97,38 @@ static void RunTest(
                            layer_norm_bias_data_quant);
 
   // Quantized scales:
-  tester.AddInput<float>("word_embedding_scale", {1}, {word_embedding_scale});
-  tester.AddInput<float>("position_embedding_scale", {1}, {position_embedding_scale});
-  tester.AddInput<float>("segment_embedding_scale", {1}, {segment_embedding_scale});
-  tester.AddInput<float>("layer_norm_weight_scale", {1}, {layer_norm_weight_scale});
-  tester.AddInput<float>("layer_norm_bias_scale", {1}, {layer_norm_bias_scale});
+  tester.AddInput<float>("word_embedding_scale",
+                         /*dims=*/{},
+                         {word_embedding_scale});
+  tester.AddInput<float>("position_embedding_scale",
+                         /*dims=*/{},
+                         {position_embedding_scale});
+  tester.AddInput<float>("segment_embedding_scale",
+                         /*dims=*/{},
+                         {segment_embedding_scale});
+  tester.AddInput<float>("layer_norm_weight_scale",
+                         /*dims=*/{},
+                         {layer_norm_weight_scale});
+  tester.AddInput<float>("layer_norm_bias_scale",
+                         /*dims=*/{},
+                         {layer_norm_bias_scale});
 
   // Quantized zero points:
-  tester.AddInput<uint8_t>("word_embedding_zero_point", {1}, {word_embedding_zero_point});
-  tester.AddInput<uint8_t>("position_embedding_zero_point", {1}, {position_embedding_zero_point});
-  tester.AddInput<uint8_t>("segment_embedding_zero_point", {1}, {segment_embedding_zero_point});
-  tester.AddInput<uint8_t>("layer_norm_weight_zero_point", {1}, {layer_norm_weight_zero_point});
-  tester.AddInput<uint8_t>("layer_norm_bias_zero_point", {1}, {layer_norm_bias_zero_point});
+  tester.AddInput<uint8_t>("word_embedding_zero_point",
+                           /*dims=*/{},
+                           {word_embedding_zero_point});
+  tester.AddInput<uint8_t>("position_embedding_zero_point",
+                           /*dims=*/{},
+                           {position_embedding_zero_point});
+  tester.AddInput<uint8_t>("segment_embedding_zero_point",
+                           /*dims=*/{},
+                           {segment_embedding_zero_point});
+  tester.AddInput<uint8_t>("layer_norm_weight_zero_point",
+                           /*dims=*/{},
+                           {layer_norm_weight_zero_point});
+  tester.AddInput<uint8_t>("layer_norm_bias_zero_point",
+                           /*dims=*/{},
+                           {layer_norm_bias_zero_point});
 
   // TODO(kreeger): Add optional mask arg here! 
 
@@ -156,15 +181,10 @@ TEST(QEmbedLayerNormTest, Shim) {
   std::vector<float> layer_norm_bias_data = {
       0.6f, 0.2f, 0.5f, -0.6f};
 
-  //
-  //
-  // TODO(kreeger): Accuracy fun here. Looks like these outputs do not match up quantized.
-  //                Something to look at - could be the QDQ thing reduces quality here anyways.
-  //
-  //
   std::vector<float> output_data = {
-      0.36917170882225037, 0.061503000557422638, 1.1598974466323853, -0.85092413425445557,
-      0.74301940202713013, -0.057434864342212677, 0.84324657917022705, -0.85171419382095337};
+      0.36917170882225037, 0.061503000557422638, 1.1598974466323853,
+      -0.85092413425445557, 0.74301940202713013, -0.057434864342212677,
+      0.84324657917022705, -0.85171419382095337};
 
   std::vector<int32_t> mask_index_data = {
       2};

@@ -8,14 +8,16 @@
 
 namespace onnxruntime {
 namespace contrib {
+
 template <typename T>
 class EmbedLayerNorm : public OpKernel {
  public:
   explicit EmbedLayerNorm(const OpKernelInfo& op_kernel_info);
   Status Compute(OpKernelContext* context) const override;
- private:
-   // TODO(kreeger): Subclass this for the quantization or create a base class!
+
+ protected:
   float epsilon_;
 };
+
 }  // namespace contrib
 }  // namespace onnxruntime
