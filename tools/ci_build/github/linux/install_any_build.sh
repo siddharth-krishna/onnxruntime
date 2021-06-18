@@ -5,7 +5,7 @@ readonly REGION="westus2"
 readonly CLUSTER_NAME="onnxr"
 
 readonly containerUrl=https://anybuild${CLUSTER_NAME}${REGION}.blob.core.windows.net/clientreleases
-readonly ANYBUILD_HOME="$HOME/.local/share/Microsoft/AnyBuild"
+readonly ANYBUILD_HOME="$AGENT_WORKFOLDER/Microsoft/AnyBuild"
 readonly channel="Dogfood"
 # Download a file from internet
 function GetFile {
@@ -69,7 +69,7 @@ if [[ ! -f "$ANYBUILD_HOME/AnyBuild.sh" ]]; then
 
 	# Ensure the permission to execute is set because if AnyBuild validation/release workflow creates the resulting archive on Windows machine which doesn't preserve this flag.
 	chmod +x $updaterBinary
-
+	cd $AGENT_WORKFOLDER
 	echo "Executing: $updaterBinary --Channel $channel --ReleaseContainerUrl $containerUrl"
 	$updaterBinary --Channel $channel --ReleaseContainerUrl $containerUrl
 fi
