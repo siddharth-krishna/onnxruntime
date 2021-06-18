@@ -16,6 +16,7 @@ constexpr float kEpsilon = 1e-12f;
 static void RunTest(
     const std::vector<int32_t>& input_ids_data,
     const std::vector<int32_t>& segment_ids_data,
+    const std::vector<int32_t>& mask_data,
     const std::vector<float>& word_embedding_data,
     const std::vector<float>& position_embedding_data,
     const std::vector<float>& segment_embedding_data,
@@ -25,7 +26,9 @@ static void RunTest(
     const std::vector<int32_t>& mask_index_data,
     int batch_size,
     int sequence_length,
-    int hidden_size) {
+    int hidden_size,
+    bool has_mask = true,
+    float accuracy_threshold = 0.25f) {
   ASSERT_TRUE(word_embedding_data.size() % hidden_size == 0);
   ASSERT_TRUE(position_embedding_data.size() % hidden_size == 0);
   ASSERT_TRUE(segment_embedding_data.size() % hidden_size == 0);
@@ -130,11 +133,19 @@ static void RunTest(
                            /*dims=*/{},
                            {layer_norm_bias_zero_point});
 
-  // TODO(kreeger): Add optional mask arg here! 
+  if (has_mask) {
+    std::vector<int64_t> mask_dims = {batch_size, sequence_length};
+    tester.AddInput<int32_t>("mask", mask_dims, mask_data);
+  }
 
   // Outputs:
   tester.AddOutput<float>("output", output_dims, output_data);
   tester.AddOutput<int32_t>("mask_index", mask_index_dims, mask_index_data);
+
+  // Floating point test vectors are quantized, passed through the operator,
+  // and dequantized. This dance will result in some loss in precision, ensure
+  // the test framework accounts for this loss:
+  tester.SetOutputAbsErr("output", accuracy_threshold);
 
   // Attributes:
   tester.AddAttribute("epsilon", kEpsilon);
@@ -158,6 +169,9 @@ TEST(QEmbedLayerNormTest, Shim) {
 
   std::vector<int32_t> segment_ids_data = {
       0, 1};
+
+  std::vector<int32_t> mask_data = {
+      1, 1};
 
   std::vector<float> word_embedding_data = {
       0.2f, 0.1f, 0.4f, -0.6f,
@@ -191,6 +205,7 @@ TEST(QEmbedLayerNormTest, Shim) {
 
   RunTest(input_ids_data,
           segment_ids_data,
+          mask_data,
           word_embedding_data,
           position_embedding_data,
           segment_embedding_data,
