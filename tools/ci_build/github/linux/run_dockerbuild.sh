@@ -9,8 +9,11 @@ BUILD_DIR=$BUILD_BINARIESDIRECTORY
 
 
 YOCTO_VERSION="4.19"
+#Training only
 INSTALL_DEPS_DISTRIBUTED_SETUP=false
+#Training only
 ORTMODULE_BUILD=false
+#Training only
 USE_CONDA=false
 ALLOW_RELEASED_ONNX_OPSET_ONLY_ENV="ALLOW_RELEASED_ONNX_OPSET_ONLY="$ALLOW_RELEASED_ONNX_OPSET_ONLY
 echo "ALLOW_RELEASED_ONNX_OPSET_ONLY environment variable is set as "$ALLOW_RELEASED_ONNX_OPSET_ONLY_ENV
@@ -93,27 +96,27 @@ elif [ $BUILD_DEVICE = "tensorrt" ]; then
             --docker-build-args="--build-arg BUILD_USER=onnxruntimedev --build-arg BUILD_UID=$(id -u) --build-arg PYTHON_VERSION=${PYTHON_VER}" \
             --dockerfile $DOCKER_FILE --context .
 else
-		IMAGE_OS_VERSION=""
-		if [ $BUILD_OS = "ubuntu18.04" ]; then
-		   IMAGE_OS_VERSION="18.04"
-		   PYTHON_VER="3.6"
-		elif [ $BUILD_OS = "ubuntu20.04" ]; then
-		   IMAGE_OS_VERSION="20.04"
-		   PYTHON_VER="3.8"
-		else
-		   exit 1
-	    fi
-		BUILD_ARGS="--build-arg BUILD_USER=onnxruntimedev --build-arg BUILD_UID=$(id -u) --build-arg PYTHON_VERSION=${PYTHON_VER} --build-arg OS_VERSION=${IMAGE_OS_VERSION}"
-		
-		if [ $BUILD_DEVICE = "openvino" ]; then
+        IMAGE_OS_VERSION=""
+        if [ $BUILD_OS = "ubuntu18.04" ]; then
+           IMAGE_OS_VERSION="18.04"
+           PYTHON_VER="3.6"
+        elif [ $BUILD_OS = "ubuntu20.04" ]; then
+           IMAGE_OS_VERSION="20.04"
+           PYTHON_VER="3.8"
+        else
+           exit 1
+        fi
+        BUILD_ARGS="--build-arg BUILD_USER=onnxruntimedev --build-arg BUILD_UID=$(id -u) --build-arg PYTHON_VERSION=${PYTHON_VER} --build-arg OS_VERSION=${IMAGE_OS_VERSION}"
+        
+        if [ $BUILD_DEVICE = "openvino" ]; then
            IMAGE="$BUILD_OS-openvino"
            DOCKER_FILE=Dockerfile.ubuntu_openvino
-		   BUILD_ARGS+=" --build-arg OPENVINO_VERSION=${OPENVINO_VERSION}"
-		else
+           BUILD_ARGS+=" --build-arg OPENVINO_VERSION=${OPENVINO_VERSION}"
+        else
            IMAGE="$BUILD_OS"
-		   DOCKER_FILE=Dockerfile.ubuntu
-		fi
-		$GET_DOCKER_IMAGE_CMD --repository "onnxruntime-$IMAGE" \
+           DOCKER_FILE=Dockerfile.ubuntu
+        fi
+        $GET_DOCKER_IMAGE_CMD --repository "onnxruntime-$IMAGE" \
                 --docker-build-args="${BUILD_ARGS}" \
                 --dockerfile $DOCKER_FILE --context .
 fi
