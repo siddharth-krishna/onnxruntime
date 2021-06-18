@@ -174,8 +174,12 @@ inline OpData EmbedLayerNormBatch2(bool has_mask=true) {
       0.57668739557266235, 0.2979130744934082, 0.96158987283706665, 0.44627034664154053,
       0.64977931976318359, 0.11039737612009048, 1.1869535446166992, 0.14469735324382782};
 
-  std::vector<int32_t> mask_index_data = {
-      2, 2, 1};
+  std::vector<int32_t> mask_index_data;
+  if (has_mask) {
+    mask_index_data = {2, 2, 1};
+  } else {
+    mask_index_data = {0, 0, 0};
+  }
 
   return OpData(batch_size, sequence_size, hidden_size, input_ids_data, segment_ids_data,
                 mask_data, word_embedding_data, position_embedding_data, segment_embedding_data,
@@ -287,7 +291,7 @@ inline OpData EmbedLayerNormBatch_Distill() {
       0.25f, 0.15f, 0.45f, -0.66f};
 
   std::vector<float> beta_data = {
-      0.6f, 0.2f, 0.5f, -0.6f};
+    0.6f, 0.2f, 0.5f, -0.6f};
 
   std::vector<float> output_data = {
       0.39587587118148804, 0.03670068085193634, 0.7449488639831543, -1.4981462955474854,
@@ -302,7 +306,9 @@ inline OpData EmbedLayerNormBatch_Distill() {
 
   return OpData(batch_size, sequence_size, hidden_size, input_ids_data, segment_ids_data,
                 mask_data, word_embedding_data, position_embedding_data, segment_embedding_data,
-                gamma_data, beta_data, output_data, mask_index_data);
+                gamma_data, beta_data, output_data, mask_index_data, kEpsilon,
+                /*has_mask=*/true,
+                /*has_segment=*/false);
 }
 
 }  // namespace embedlayernorm
