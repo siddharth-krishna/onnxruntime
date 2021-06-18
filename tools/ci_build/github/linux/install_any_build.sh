@@ -7,6 +7,39 @@ readonly CLUSTER_NAME="onnxr"
 readonly containerUrl=https://anybuild${CLUSTER_NAME}${REGION}.blob.core.windows.net/clientreleases
 readonly ANYBUILD_HOME="$HOME/.local/share/Microsoft/AnyBuild"
 readonly channel="Dogfood"
+# Download a file from internet
+function GetFile {
+  local uri=$1
+  local path=$2
+  local force=${3:-false}
+  local download_retries=${4:-5}
+  local retry_wait_time_seconds=${5:-30}
+
+  if [[ -f $path ]]; then
+    if [[ $force = false ]]; then
+      echo "File '$path' already exists. Skipping download"
+      return 0
+    else
+      rm -rf $path
+    fi
+  fi
+
+  if [[ -f $uri ]]; then
+    echo "'$uri' is a file path, copying file to '$path'"
+    cp $uri $path
+    return $?
+  fi
+
+  echo "Downloading $uri"
+  # Use aria2c if available, otherwise use curl
+  if command -v aria2c > /dev/null; then
+    aria2c -q -d $(dirname $path) -o $(basename $path) "$uri"
+  else
+    curl "$uri" -sSL --retry $download_retries --retry-delay $retry_wait_time_seconds --create-dirs -o "$path" --fail
+  fi
+
+  return $?
+}
 
 if [[ ! -f "$ANYBUILD_HOME/AnyBuild.sh" ]]; then
     echo
@@ -21,7 +54,7 @@ if [[ ! -f "$ANYBUILD_HOME/AnyBuild.sh" ]]; then
 	mkdir -p $anyBuildClientBaseDir
 
 	echo "Downloading and running AnyBuildUpdater from $channel channel from $containerUrl"
-	wget $containerUrl/ReleasesLinux.json -O $anyBuildClientBaseDir/ReleasesLinux.json
+	GetFile $containerUrl/ReleasesLinux.json $anyBuildClientBaseDir/ReleasesLinux.json
 
 	currentRelease=$(cat $anyBuildClientBaseDir/ReleasesLinux.json | python -c "import sys, json; print(json.load(sys.stdin)['${channel}Channel']['Release'])")
 
@@ -33,7 +66,7 @@ if [[ ! -f "$ANYBUILD_HOME/AnyBuild.sh" ]]; then
 
 	updaterArchive="$updaterDir/AnyBuildUpdater.tar.gz"
 	mkdir -p $updaterDir
-	wget $containerUrl/$currentRelease/Linux/AnyBuildUpdater.tar.gz -O $updaterArchive
+	GetFile $containerUrl/$currentRelease/Linux/AnyBuildUpdater.tar.gz $updaterArchive
 	tar xzf $updaterArchive --directory $updaterDir
 
 	updaterBinary=$updaterDir/AnyBuildUpdater
