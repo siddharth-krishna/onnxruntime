@@ -18,7 +18,7 @@ echo "ALLOW_RELEASED_ONNX_OPSET_ONLY environment variable is set as "$ALLOW_RELE
 while getopts o:d:p:x:v:y:t:i:mue parameter_Option
 do case "${parameter_Option}"
 in
-#android, ubuntu16.04, ubuntu18.04
+#android, yocto, ubuntu20.04
 o) BUILD_OS=${OPTARG};;
 #gpu, tensorrt or openvino. It is ignored when BUILD_OS is android or yocto.
 d) BUILD_DEVICE=${OPTARG};;
