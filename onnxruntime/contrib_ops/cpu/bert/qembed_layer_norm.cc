@@ -13,7 +13,7 @@ namespace contrib {
 namespace {
 
 template <typename T>
-T GetQuantizedInputTensorValue(OpKernelContext* context, int index) {
+inline T GetQuantizedInputTensorValue(OpKernelContext* context, int index) {
   const Tensor* tensor = context->Input<Tensor>(index);
   return *(tensor->template Data<T>());
 }
