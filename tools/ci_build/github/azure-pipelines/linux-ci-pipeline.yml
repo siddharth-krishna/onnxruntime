@@ -33,33 +33,32 @@ jobs:
       Repository: onnxruntimecpubuild
 
   - bash: |
-      set -e -x
-      mkdir -p $HOME/.onnx
-      docker run --rm --net=host \
-          --volume /data/onnx:/data/onnx:ro \
-          --volume $(Build.SourcesDirectory):/onnxruntime_src \
-          --volume $(Build.BinariesDirectory):/build \
-          --volume $HOME/.onnx:/home/onnxruntimedev/.onnx \
-          --volume $(Agent.WorkFolder)/Microsoft/AnyBuild:/AnyBuild \
-          -e ANYBUILDPRIVATEKEY \
-          -e ALLOW_RELEASED_ONNX_OPSET_ONLY=0 \
-          -e NIGHTLY_BUILD \
-          -e BUILD_BUILDNUMBER \
-          onnxruntimecpubuild \
-            /AnyBuild/AnyBuild.sh --RemoteExecServiceUri $(ANYBUILD_CLUSTER_URI)   --ClientApplicationId ef5b3365-5c24-4e2e-b79d-6382a48d7436 --ClientSecretEnvironmentVariable ANYBUILDPRIVATEKEY --LogDir ablogs  --WhyCacheMiss --WhyCacheMissOptions CacheDataStoreKey=onnxr -- /opt/python/cp38-cp38/bin/python3 /onnxruntime_src/tools/ci_build/build.py \
-              --build_dir /build --cmake_generator Ninja \
-              --config Debug Release \
-              --skip_submodule_sync \
-              --build_shared_lib \
-              --parallel \
-              --build_wheel \
-              --enable_onnx_tests --enable_transformers_tool_test \
-              --build_java --build_nodejs --update --build
-
+     set -e -x
+     mkdir -p $HOME/.onnx
+     docker run --rm --net=host \
+             --volume /data/onnx:/data/onnx:ro \
+             --volume $(Build.SourcesDirectory):/onnxruntime_src \
+             --volume $(Build.BinariesDirectory):/build \
+             --volume $HOME/.onnx:/home/onnxruntimedev/.onnx \
+             --volume $(Agent.WorkFolder)/Microsoft/AnyBuild:/AnyBuild \
+             -e ANYBUILDPRIVATEKEY \
+             -e ALLOW_RELEASED_ONNX_OPSET_ONLY=0 \
+             -e NIGHTLY_BUILD \
+             -e BUILD_BUILDNUMBER \
+             onnxruntimecpubuild \
+               /AnyBuild/AnyBuild.sh --RemoteExecServiceUri $(ANYBUILD_CLUSTER_URI)   --ClientApplicationId ef5b3365-5c24-4e2e-b79d-6382a48d7436 --ClientSecretEnvironmentVariable ANYBUILDPRIVATEKEY --LogDir ablogs  --WhyCacheMiss --WhyCacheMissOptions CacheDataStoreKey=onnxr -- /opt/python/cp38-cp38/bin/python3 /onnxruntime_src/tools/ci_build/build.py \
+                 --build_dir /build --cmake_generator Ninja \
+                 --config Debug Release \
+                 --skip_submodule_sync \
+                 --build_shared_lib \
+                 --parallel \
+                 --build_wheel \
+                 --enable_onnx_tests --enable_transformers_tool_test \
+                 --build_java --build_nodejs --update --build
+    workingDirectory: '$(Build.SourcesDirectory)'
     noProfile: false
     noRc: false
-    displayName: 'build'
-    workingDirectory: $(Build.SourcesDirectory)
+    displayName: 'Bash Script'
     env:
       ANYBUILDPRIVATEKEY: $(ANYBUILDPRIVATEKEY)
   
