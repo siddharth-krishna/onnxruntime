@@ -45,12 +45,8 @@ if [[ ! -f "$ANYBUILD_HOME/AnyBuild.sh" ]]; then
     echo
     echo "=== Installing AnyBuild client ==="
     echo
-    	
 
-	# .Net Core follows this guidance as well: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
-	localAppData=${XDG_DATA_HOME:-$HOME/.local/share}
-
-	anyBuildClientBaseDir=$localAppData/Microsoft/AnyBuild
+	anyBuildClientBaseDir=$AGENT_WORKFOLDER/AnyBuild
 	mkdir -p $anyBuildClientBaseDir
 
 	echo "Downloading and running AnyBuildUpdater from $channel channel from $containerUrl"
