@@ -552,6 +552,7 @@ TODO(kreeger): Add more documentation here when ready.
       .SinceVersion(1)
       .SetSupportLevel(OpSchema::SupportType::EXPERIMENTAL)
       .SetDoc(QEmbedLayerNorm_ver1_doc)
+      .Attr("epsilon", "The epsilon value to use to avoid division by zero.", AttributeProto::FLOAT, kDefaultEmbedLayerNormEpsilon)
       .Input(0, "input_ids", "input ids", "T2")
       .Input(1, "segment_ids", "segment ids", "T2")
       .Input(2, "word_embedding_quant", "Word Embedding Quant", "T1")
