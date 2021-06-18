@@ -56,8 +56,6 @@ jobs:
                  --enable_onnx_tests --enable_transformers_tool_test \
                  --build_java --build_nodejs --update --build
     workingDirectory: '$(Build.SourcesDirectory)'
-    noProfile: false
-    noRc: false
     displayName: 'Bash Script'
     env:
       ANYBUILDPRIVATEKEY: $(ANYBUILDPRIVATEKEY)
