@@ -32,13 +32,10 @@ jobs:
       DockerBuildArgs: "--build-arg BUILD_UID=$( id -u )"
       Repository: onnxruntimecpubuild
 
-  - task: CmdLine@2
-    displayName: 'build'
-    inputs:
-      script: |
-        set -e -x
-        mkdir -p $HOME/.onnx
-        docker run --rm --net=host \
+  - bash: |
+      set -e -x
+      mkdir -p $HOME/.onnx
+      docker run --rm --net=host \
           --volume /data/onnx:/data/onnx:ro \
           --volume $(Build.SourcesDirectory):/onnxruntime_src \
           --volume $(Build.BinariesDirectory):/build \
@@ -57,8 +54,13 @@ jobs:
               --parallel \
               --build_wheel \
               --enable_onnx_tests --enable_transformers_tool_test\
-              --build_java --build_nodejs --update --build
-      workingDirectory: $(Build.SourcesDirectory)
+              --build_java --build_nodejs --update --build   
+    noProfile: false
+    noRc: false
+    displayName: 'build'
+    workingDirectory: $(Build.SourcesDirectory)
+    env:
+      ANYBUILDPRIVATEKEY: $(ANYBUILDPRIVATEKEY)
   
   - task: CmdLine@2
     displayName: 'Install python deps and run java tests'
