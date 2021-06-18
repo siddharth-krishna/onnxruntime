@@ -36,14 +36,15 @@ jobs:
     displayName: 'build'
     inputs:
       script: |
+        set -e -x
         mkdir -p $HOME/.onnx
-        docker run --rm --net=host \          
+        docker run --rm --net=host \
           --volume /data/onnx:/data/onnx:ro \
           --volume $(Build.SourcesDirectory):/onnxruntime_src \
           --volume $(Build.BinariesDirectory):/build \
           --volume $HOME/.onnx:/home/onnxruntimedev/.onnx \
+          --volume $(Agent.WorkFolder)/AnyBuild:/AnyBuild \
           -e ANYBUILDPRIVATEKEY \
-          -v $(Agent.WorkFolder)/AnyBuild:/AnyBuild                       \
           -e ALLOW_RELEASED_ONNX_OPSET_ONLY=0 \
           -e NIGHTLY_BUILD \
           -e BUILD_BUILDNUMBER \
