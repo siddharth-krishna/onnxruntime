@@ -3,6 +3,8 @@
 
 #include "qembed_layer_norm.h"
 
+#include <cmath>
+
 #include "embed_layer_norm_helper.h"
 #include "core/framework/op_kernel.h"
 #include "core/providers/common.h"

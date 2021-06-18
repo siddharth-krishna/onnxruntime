@@ -116,29 +116,26 @@ Status CheckQuantizedInputs(const OpKernelContext* context) {
   // Optional mask index is the last input after quantization values:
   ORT_RETURN_IF_ERROR(CheckInputsInternal(context, /*mask_index=*/17));
 
-  /*
-  Quantized Input Tensors List:
-  [7] word_embedding_scale
-  [8] position_embedding_scale
-  [9] segment_embedding_scale
-  [10] layer_norm_weights_scale
-  [11] layer_norm_bias_scale
-  [12] word_embedding_zero_point
-  [13] position_embedding_zero_point
-  [14] segment_embedding_zero_point
-  [15] layer_norm_weights_zero_point
-  [16] layer_norm_bias_zero_point
-  */
-  ORT_RETURN_IF_NOT(IsScalarOr1ElementVector(context->Input<Tensor>(7)));
-  ORT_RETURN_IF_NOT(IsScalarOr1ElementVector(context->Input<Tensor>(8)));
-  ORT_RETURN_IF_NOT(IsScalarOr1ElementVector(context->Input<Tensor>(9)));
-  ORT_RETURN_IF_NOT(IsScalarOr1ElementVector(context->Input<Tensor>(10)));
-  ORT_RETURN_IF_NOT(IsScalarOr1ElementVector(context->Input<Tensor>(11)));
-  ORT_RETURN_IF_NOT(IsScalarOr1ElementVector(context->Input<Tensor>(12)));
-  ORT_RETURN_IF_NOT(IsScalarOr1ElementVector(context->Input<Tensor>(13)));
-  ORT_RETURN_IF_NOT(IsScalarOr1ElementVector(context->Input<Tensor>(14)));
-  ORT_RETURN_IF_NOT(IsScalarOr1ElementVector(context->Input<Tensor>(15)));
-  ORT_RETURN_IF_NOT(IsScalarOr1ElementVector(context->Input<Tensor>(16)));
+  ORT_RETURN_IF_NOT(IsScalarOr1ElementVector(context->Input<Tensor>(7)),
+      "Word embedding scale must be a scalar or 1D tensor of size 1");
+  ORT_RETURN_IF_NOT(IsScalarOr1ElementVector(context->Input<Tensor>(8)),
+      "Position embedding scale must be a scalar or 1D tensor of size 1");
+  ORT_RETURN_IF_NOT(IsScalarOr1ElementVector(context->Input<Tensor>(9)),
+      "Segment embedding scale must be a scalar or 1D tensor of size 1");
+  ORT_RETURN_IF_NOT(IsScalarOr1ElementVector(context->Input<Tensor>(10)),
+      "Layer norm weights scale must be a scalar or 1D tensor of size 1");
+  ORT_RETURN_IF_NOT(IsScalarOr1ElementVector(context->Input<Tensor>(11)),
+      "Layer norm bias must be a scalar or 1D tensor of size 1");
+  ORT_RETURN_IF_NOT(IsScalarOr1ElementVector(context->Input<Tensor>(12)),
+      "Word embedding zero point must be a scalar or 1D tensor of size 1");
+  ORT_RETURN_IF_NOT(IsScalarOr1ElementVector(context->Input<Tensor>(13)),
+      "Position embedding zero point must be a scalar or 1D tensor of size 1");
+  ORT_RETURN_IF_NOT(IsScalarOr1ElementVector(context->Input<Tensor>(14)),
+      "Segment embedding zero point must be a scalar or 1D tensor of size 1");
+  ORT_RETURN_IF_NOT(IsScalarOr1ElementVector(context->Input<Tensor>(15)),
+      "Layer norm weights zero point must be a scalar or 1D tensor of size 1");
+  ORT_RETURN_IF_NOT(IsScalarOr1ElementVector(context->Input<Tensor>(16)),
+      "Layer norm bias zero point must be a scalar or 1D tensor of size 1");
 
   return Status::OK();
 }
