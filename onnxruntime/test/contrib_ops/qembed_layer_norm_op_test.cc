@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+#include "embed_layer_norm_test_vectors.h"
 #include "gtest/gtest.h"
 #include "test/common/quantization_test_utils.h"
 #include "test/common/tensor_op_test_utils.h"
@@ -10,8 +11,6 @@ namespace onnxruntime {
 namespace test {
 
 namespace {
-
-constexpr float kEpsilon = 1e-12f;
 
 static void RunTest(
     const std::vector<int32_t>& input_ids_data,
@@ -148,7 +147,7 @@ static void RunTest(
   tester.SetOutputAbsErr("output", accuracy_threshold);
 
   // Attributes:
-  tester.AddAttribute("epsilon", kEpsilon);
+  tester.AddAttribute("epsilon", embedlayernorm::kEpsilon);
 
   tester.Run();
 }
