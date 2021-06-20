@@ -11,7 +11,7 @@
 namespace onnxruntime {
 namespace test {
 
-static void RunTestNew(const embedlayernorm::OpData& data,
+static void RunTest(const embedlayernorm::OpData& data,
                        bool use_float16 = false) {
   int min_cuda_architecture = use_float16 ? 530 : 0;
 
@@ -111,28 +111,28 @@ static void RunTestNew(const embedlayernorm::OpData& data,
 }
 
 TEST(EmbedLayerNormTest, EmbedLayerNormBatch1) {
-  RunTestNew(embedlayernorm::EmbedLayerNormBatch1());
+  RunTest(embedlayernorm::EmbedLayerNormBatch1());
 }
 
 TEST(EmbedLayerNormTest, EmbedLayerNormBatch1_Float16) {
-  RunTestNew(embedlayernorm::EmbedLayerNormBatch1(), /*use_float16=*/true);
+  RunTest(embedlayernorm::EmbedLayerNormBatch1(), /*use_float16=*/true);
 }
 
 TEST(EmbedLayerNormTest, EmbedLayerNormBatch2) {
-  RunTestNew(embedlayernorm::EmbedLayerNormBatch2());
+  RunTest(embedlayernorm::EmbedLayerNormBatch2());
 }
 
 TEST(EmbedLayerNormTest, EmbedLayerNormBatch2_NoMask) {
-  RunTestNew(embedlayernorm::EmbedLayerNormBatch2(/*has_mask=*/false));
+  RunTest(embedlayernorm::EmbedLayerNormBatch2(/*has_mask=*/false));
 }
 
 // BatchSize > HiddenSize to reproduce mask processing bug
 TEST(EmbedLayerNormTest, EmbedLayerNormLargeBatchSmallHiddenSize) {
-  RunTestNew(embedlayernorm::EmbedLayerNormLargeBatchSmallHiddenSize());
+  RunTest(embedlayernorm::EmbedLayerNormLargeBatchSmallHiddenSize());
 }
 
 TEST(EmbedLayerNormTest, EmbedLayerNormBatch_Distill) {
-  RunTestNew(embedlayernorm::EmbedLayerNormBatch_Distill());
+  RunTest(embedlayernorm::EmbedLayerNormBatch_Distill());
 }
 
 }  // namespace test
