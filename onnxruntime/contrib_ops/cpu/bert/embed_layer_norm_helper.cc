@@ -140,6 +140,10 @@ Status CheckQuantizedInputs(const OpKernelContext* context) {
   return Status::OK();
 }
 
+Status ComputeInternal() {
+  return Status::OK();
+}
+
 }  // namespace embed_layer_norm
 }  // namespace contrib
 }  // namespace onnxruntime

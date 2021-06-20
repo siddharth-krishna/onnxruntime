@@ -16,6 +16,10 @@ Status CheckInputs(const OpKernelContext* context);
 
 Status CheckQuantizedInputs(const OpKernelContext* context);
 
+// TODO(kreeger): move common logic here or inside the base class.
+template <typename T>
+Status ComputeInternal();
+
 }  // namespace embed_layer_norm
 }  // namespace contrib
 }  // namespace onnxruntime

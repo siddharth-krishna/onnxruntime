@@ -14,6 +14,7 @@ namespace contrib {
 
 namespace {
 
+// TODO(kreeger): Find a global home for these helper methods.
 template <typename T>
 inline T GetQuantizedInputTensorValue(OpKernelContext* context, int index) {
   const Tensor* tensor = context->Input<Tensor>(index);
@@ -180,6 +181,7 @@ Status QEmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
 
       T sum = static_cast<T>(0);
       for (int i = 0; i < hidden_size; ++i) {
+        // pass a lambda for these dequantize calls.
         T subtotal = Dequantize(input_word_embedding[i],
                                 word_embedding_scale,
                                 word_embedding_zero_point) +
