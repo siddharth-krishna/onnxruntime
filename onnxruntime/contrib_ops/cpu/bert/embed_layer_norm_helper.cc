@@ -143,7 +143,7 @@ Status CheckQuantizedInputs(const OpKernelContext* context) {
 template <typename T, typename F>
 Status ComputeInternal(int batch_size,
                        int sequence_size,
-                       int hidden_size,
+                       int64_t hidden_size,
                        const int32_t* input_ids_data,
                        const int32_t* segment_ids_data,
                        const T* word_embedding_data,
@@ -151,15 +151,15 @@ Status ComputeInternal(int batch_size,
                        const T* segment_embedding_data,
                        const T* gamma_data,
                        const T* beta_data,
-                       F&& word_embeddding_fn,
-                       F&& position_embedding_fn,
-                       F&& segment_embedding_fn,
-                       F&& gamma_fn,
-                       F&& beta_fn,
-                       T* output_data) {
+                       T* output_data,
+                       std::function<T(T)>* word_embedding_fn
+                       //F&& position_embedding_fn,
+                       //F&& segment_embedding_fn,
+                       //F&& gamma_fn,
+                       //F&& beta_fn,
+                       ) {
   //
   // TODO(kreeger): write me.
-  // TODO(kreeger): need a lambda function here.
   //
   {
     std::atomic_bool failed{false};
@@ -187,6 +187,7 @@ Status ComputeInternal(int batch_size,
       }
 
       // Grab inputs for the embeddings for the current batch index:
+      // TODO - will need type annontation on these instead of uint8_t
       const uint8_t* input_word_embedding = word_embedding_data + (word_col_index * hidden_size);
       const uint8_t* input_position_embedding =
           position_embedding_data + (position_col_index * hidden_size);
@@ -200,6 +201,10 @@ Status ComputeInternal(int batch_size,
       T sum = static_cast<T>(0);
       for (int i = 0; i < hidden_size; ++i) {
         // pass a lambda for these dequantize calls.
+        T cur_word_embedding = word_embedding_fn ==
+                                       nullptr
+                                   ? input_word_embedding[i]
+                                   : word_embedding_fn(input_word_embedding[i]);
         T subtotal = word_embeddding_fn(i) + position_embedding_fn(i);
         if (segment_embedding_data != nullptr) {
           subtotal += segment_embedding_fn(i);

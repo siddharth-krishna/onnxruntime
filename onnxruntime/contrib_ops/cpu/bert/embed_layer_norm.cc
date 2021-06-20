@@ -54,6 +54,10 @@ Status EmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
   int batch_size = static_cast<int>(input_dims[0]);
   int sequence_length = static_cast<int>(input_dims[1]);
 
+  //
+  // TODO(kreeger): left off right here. These will need to be in the helper...
+  //                either pass them into the function arg or maybe it is time to create a runtime struct (this is getting wild).
+  //
   int word_embedding_length = static_cast<int>(word_embedding->Shape()[0]);
   int position_embedding_length = static_cast<int>(position_embedding->Shape()[0]);
   int segment_embedding_length = (nullptr == segment_embedding) ? 0 : static_cast<int>(segment_embedding->Shape()[0]);
@@ -78,11 +82,6 @@ Status EmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
       segment_embedding_data,
       gamma_data,
       beta_data,
-      /*word_embedding_fn=*/[=](int idx) { return 0; },
-      /*position_embedding_fn=*/[=](int idx) { return 0; },
-      /*segment_embedding_fn=*/[=](int idx) { return 0; },
-      /*gamma_fn=*/[=](int idx) { return 0; },
-      /*beta_fn=*/[=](int idx) { return 0; },
       output_data);
 
   //// Calculate output
