@@ -67,73 +67,91 @@ Status EmbedLayerNorm<T>::Compute(OpKernelContext* context) const {
   const T* beta_data = beta->template Data<T>();
   T* output_data = output->template MutableData<T>();
 
-  // Calculate output
-  {
-    std::atomic_bool failed{false};
+  embed_layer_norm::ComputeInternal(
+      batch_size,
+      sequence_length,
+      hidden_size,
+      input_ids_data,
+      segment_ids_data,
+      word_embedding_data,
+      position_embedding_data,
+      segment_embedding_data,
+      gamma_data,
+      beta_data,
+      /*word_embedding_fn=*/[=](int idx) { return 0; },
+      /*position_embedding_fn=*/[=](int idx) { return 0; },
+      /*segment_embedding_fn=*/[=](int idx) { return 0; },
+      /*gamma_fn=*/[=](int idx) { return 0; },
+      /*beta_fn=*/[=](int idx) { return 0; },
+      output_data);
 
-    int n = batch_size * sequence_length;
-    concurrency::ThreadPool::TryBatchParallelFor(context->GetOperatorThreadPool(), n, [=, &failed](ptrdiff_t index) {
-      int word_col_index = input_ids_data[index];
-      if (word_col_index < 0 || word_col_index >= word_embedding_length) {
-        failed.store(true, std::memory_order_release);
-        return;
-      }
-      int position_col_index = index % sequence_length;
-      if (position_col_index >= position_embedding_length) {
-        failed.store(true, std::memory_order_release);
-        return;
-      }
-      int segment_col_index = 0;
-      if (nullptr != segment_ids_data) {
-        segment_col_index = segment_ids_data[index];
-        if (segment_col_index < 0 || segment_col_index >= segment_embedding_length) {
-          failed.store(true, std::memory_order_release);
-          return;
-        }
-      }
+  //// Calculate output
+  //{
+  //  std::atomic_bool failed{false};
 
-      T* y = output_data + index * hidden_size;
-      const T* input_word_embedding = word_embedding_data + word_col_index * hidden_size;
-      const T* input_position_embedding = position_embedding_data + position_col_index * hidden_size;
-      const T* input_segment_embedding = (nullptr == segment_embedding_data) ? nullptr : segment_embedding_data + segment_col_index * hidden_size;
+  //  int n = batch_size * sequence_length;
+  //  concurrency::ThreadPool::TryBatchParallelFor(context->GetOperatorThreadPool(), n, [=, &failed](ptrdiff_t index) {
+  //    int word_col_index = input_ids_data[index];
+  //    if (word_col_index < 0 || word_col_index >= word_embedding_length) {
+  //      failed.store(true, std::memory_order_release);
+  //      return;
+  //    }
+  //    int position_col_index = index % sequence_length;
+  //    if (position_col_index >= position_embedding_length) {
+  //      failed.store(true, std::memory_order_release);
+  //      return;
+  //    }
+  //    int segment_col_index = 0;
+  //    if (nullptr != segment_ids_data) {
+  //      segment_col_index = segment_ids_data[index];
+  //      if (segment_col_index < 0 || segment_col_index >= segment_embedding_length) {
+  //        failed.store(true, std::memory_order_release);
+  //        return;
+  //      }
+  //    }
 
-      T sum = static_cast<T>(0);
-      for (int i = 0; i < hidden_size; i++) {
-        T subtotal = input_word_embedding[i] + input_position_embedding[i];
-        if (nullptr != segment_embedding_data)
-          subtotal += input_segment_embedding[i];
-        y[i] = subtotal;
-        sum += subtotal;
-      }
-      T mean = sum / hidden_size;
-      sum = 0;
-      for (int i = 0; i < hidden_size; i++) {
-        T a = y[i] - mean;
-        y[i] = a;
-        sum += a * a;
-      }
-      T e = sqrt(sum / hidden_size + static_cast<T>(epsilon_));
-      for (int i = 0; i < hidden_size; i++) {
-        y[i] = y[i] / e * gamma_data[i] + beta_data[i];
-      }
-    }, 0);
+  //    T* y = output_data + index * hidden_size;
+  //    const T* input_word_embedding = word_embedding_data + word_col_index * hidden_size;
+  //    const T* input_position_embedding = position_embedding_data + position_col_index * hidden_size;
+  //    const T* input_segment_embedding = (nullptr == segment_embedding_data) ? nullptr : segment_embedding_data + segment_col_index * hidden_size;
 
-    if (failed.load(std::memory_order_acquire)) {
-      return ORT_MAKE_STATUS(ONNXRUNTIME, INVALID_ARGUMENT, "input index out of range");
-    }
-  }
+  //    T sum = static_cast<T>(0);
+  //    for (int i = 0; i < hidden_size; i++) {
+  //      T subtotal = input_word_embedding[i] + input_position_embedding[i];
+  //      if (nullptr != segment_embedding_data)
+  //        subtotal += input_segment_embedding[i];
+  //      y[i] = subtotal;
+  //      sum += subtotal;
+  //    }
+  //    T mean = sum / hidden_size;
+  //    sum = 0;
+  //    for (int i = 0; i < hidden_size; i++) {
+  //      T a = y[i] - mean;
+  //      y[i] = a;
+  //      sum += a * a;
+  //    }
+  //    T e = sqrt(sum / hidden_size + static_cast<T>(epsilon_));
+  //    for (int i = 0; i < hidden_size; i++) {
+  //      y[i] = y[i] / e * gamma_data[i] + beta_data[i];
+  //    }
+  //  }, 0);
 
-  // Calculate mask
-  if (nullptr != mask) {
-    const int32_t* mask_data = mask->template Data<int32_t>();
-    for (int b = 0; b < batch_size; b++) {
-      mask_index->template MutableData<int32_t>()[b] = static_cast<int32_t>(std::count_if(mask_data + (b * sequence_length),
-                                                                                          mask_data + (b * sequence_length) + sequence_length,
-                                                                                          [](int v) { return v == 1; }));
-    }
-  } else {
-    memset(mask_index->template MutableData<int32_t>(), 0, batch_size * sizeof(int32_t));
-  }
+  //  if (failed.load(std::memory_order_acquire)) {
+  //    return ORT_MAKE_STATUS(ONNXRUNTIME, INVALID_ARGUMENT, "input index out of range");
+  //  }
+  //}
+
+  //// Calculate mask
+  //if (nullptr != mask) {
+  //  const int32_t* mask_data = mask->template Data<int32_t>();
+  //  for (int b = 0; b < batch_size; b++) {
+  //    mask_index->template MutableData<int32_t>()[b] = static_cast<int32_t>(std::count_if(mask_data + (b * sequence_length),
+  //                                                                                        mask_data + (b * sequence_length) + sequence_length,
+  //                                                                                        [](int v) { return v == 1; }));
+  //  }
+  //} else {
+  //  memset(mask_index->template MutableData<int32_t>(), 0, batch_size * sizeof(int32_t));
+  //}
 
   return Status::OK();
 }
