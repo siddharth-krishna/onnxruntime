@@ -12,6 +12,13 @@ namespace test {
 
 namespace {
 
+//
+//
+// TODO(kreeger): LEFT OFF RIGHT HERE. NEED TO UPDATE THE QUANTIZED UNIT TESTS TO USE
+//                THE EXPORTED UNIT TEST VALUES!
+// 
+//
+
 static void RunTest(
     const std::vector<int32_t>& input_ids_data,
     const std::vector<int32_t>& segment_ids_data,
