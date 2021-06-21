@@ -16,6 +16,18 @@ class EmbedLayerNorm : public OpKernel {
   Status Compute(OpKernelContext* context) const override;
 
  protected:
+   // TODO - better name than T2
+  Status ComputeInternal(OpKernelContext* context,
+                         const Tensor* input_ids,
+                         const Tensor* segment_ids,
+                         const Tensor* word_embedding,
+                         const Tensor* position_embedding,
+                         const Tensor* segment_embedding,
+                         const Tensor* gamma,
+                         const Tensor* beta,
+                         const Tensor* mask) const;
+
+// TODO - this should be private.
   float epsilon_;
 };
 
