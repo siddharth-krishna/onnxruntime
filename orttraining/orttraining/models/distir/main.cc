@@ -71,6 +71,9 @@ int main() {
       &default_logger_id,
       -1};
 
+  auto world_size = MPIContext::GetInstance().GetWorldSize();
+  cout << "World size: " << world_size << endl;
+
   // Set up environment
   unique_ptr<Environment> env;
   RETURN_IF_FAIL(Environment::Create(nullptr, env));
@@ -79,27 +82,53 @@ int main() {
   InferenceSession inference_session{session_options, *env};
 
   // Load the .onnx file
-  ORT_THROW_IF_ERROR(inference_session.Load("/home/t-sikris/onnxruntime/model.onnx"));
+  std::ostringstream filename;
+  filename << "/home/t-sikris/onnxruntime/model-" << MPIContext::GetInstance().GetWorldRank() << ".onnx";
+  // ORT_THROW_IF_ERROR(inference_session.Load("/home/t-sikris/onnxruntime/model.onnx"));
+  ORT_THROW_IF_ERROR(inference_session.Load(filename.str()));
   ORT_THROW_IF_ERROR(inference_session.Initialize());
 
   // Create random input data
+  // MLValue xValue;
+  // TrainingUtil::CreateCpuMLValue({1, 2}, std::vector<float>{1.0, 1.0}, &xValue);
+  // VectorString feed_names = {"X"};
+  // VectorString fetch_names = {"Z"};
+  // std::vector<MLValue> feeds = {xValue};
+  // std::vector<MLValue> fetches = std::vector<MLValue>();
+  MLValue signalValue;
+  TrainingUtil::CreateCpuMLScalar(true, &signalValue);
+  MLValue srcValue;
+  int64_t srcRank = 0;
+  TrainingUtil::CreateCpuMLScalar(srcRank, &srcValue);
+  MLValue dstValue;
+  int64_t dstRank = 1;
+  TrainingUtil::CreateCpuMLScalar(dstRank, &dstValue);
   MLValue xValue;
   TrainingUtil::CreateCpuMLValue({1, 2}, std::vector<float>{1.0, 1.0}, &xValue);
-  // MLDataType element_type = DataTypeImpl::GetType<float>();
-  VectorString feed_names = {"X"};
-  VectorString fetch_names = {"Z"};
-  std::vector<MLValue> feeds = {xValue};
-  std::vector<MLValue> fetches = std::vector<MLValue>();
+  VectorString feed_names;
+  VectorString fetch_names = {"output_signal"};
+  std::vector<MLValue> feeds;
+  std::vector<MLValue> fetches;
+  if (MPIContext::GetInstance().GetWorldRank() == 0) {
+    feed_names = {"input_signal_token", "dst_rank_token", "X"};
+    feeds = {signalValue, dstValue, xValue};
+    fetches = std::vector<MLValue>();
+  } else {
+    feed_names = {"input_signal_token", "src_rank_token"};
+    feeds = {signalValue, srcValue};
+    fetches = std::vector<MLValue>();
+  }
 
   // Run the file:
   RunOptions run_options;
   run_options.only_execute_path_to_fetches = true;
-  common::Status status = inference_session.Run(
+  // common::Status status = inference_session.Run(
+  ORT_THROW_IF_ERROR(inference_session.Run(
       run_options,
       feed_names,
       feeds,
       fetch_names,
-      &fetches);
+      &fetches));
   // status = inference_session.PartialRun(run_options, feeds, fetches, state,
   //   feeds_fetches_manager);
 
