@@ -186,6 +186,25 @@ if (onnxruntime_BUILD_UNIT_TESTS)
   target_link_libraries(onnxruntime_training_bert PRIVATE onnxruntime_training_runner onnxruntime_training ${ONNXRUNTIME_LIBS} ${onnxruntime_EXTERNAL_LIBRARIES})
   set_target_properties(onnxruntime_training_bert PROPERTIES FOLDER "ONNXRuntimeTest")
 
+  # DistIR backend
+  file(GLOB_RECURSE distir_runner_src
+      "${ORTTRAINING_SOURCE_DIR}/models/distir/*.h"
+      "${ORTTRAINING_SOURCE_DIR}/models/distir/*.cc"
+  )
+  onnxruntime_add_executable(onnxruntime_distir_runner ${distir_runner_src})
+
+  if(UNIX AND NOT APPLE)
+    if (HAS_NO_MAYBE_UNINITIALIZED)
+      target_compile_options(onnxruntime_distir_runner PUBLIC "-Wno-maybe-uninitialized")
+    endif()
+  endif()
+
+  onnxruntime_add_include_to_target(onnxruntime_distir_runner onnxruntime_common onnx onnx_proto ${PROTOBUF_LIB} onnxruntime_training flatbuffers)
+  target_include_directories(onnxruntime_distir_runner PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${ONNXRUNTIME_ROOT} ${ORTTRAINING_ROOT} ${MPI_CXX_INCLUDE_DIRS} ${eigen_INCLUDE_DIRS} ${CXXOPTS} ${extra_includes} ${onnxruntime_graph_header} ${onnxruntime_exec_src_dir} ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/onnx onnxruntime_training_runner)
+
+  target_link_libraries(onnxruntime_distir_runner PRIVATE onnxruntime_training_runner onnxruntime_training ${ONNXRUNTIME_LIBS} ${onnxruntime_EXTERNAL_LIBRARIES})
+  set_target_properties(onnxruntime_distir_runner PROPERTIES FOLDER "ONNXRuntimeTest")
+
   # Pipeline
   file(GLOB_RECURSE training_pipeline_poc_src
       "${ORTTRAINING_SOURCE_DIR}/models/pipeline_poc/*.h"
