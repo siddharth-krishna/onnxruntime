@@ -28,6 +28,9 @@ std::unique_ptr<IAllocator> CreateCUDAPinnedAllocator(int16_t device_id, const c
 #include "orttraining/models/runner/training_runner.h"
 #include "orttraining/models/runner/training_util.h"
 #include "orttraining/models/runner/data_loader.h"
+#if defined(USE_CUDA) && defined(ORT_USE_NCCL) && defined(USE_NCCL_P2P)
+#include "orttraining/training_ops/cuda/communication/nccl_service.h"
+#endif
 
 using namespace onnxruntime;
 using namespace onnxruntime::common;
@@ -86,38 +89,93 @@ int main() {
   filename << "/home/t-sikris/onnxruntime/model-" << MPIContext::GetInstance().GetWorldRank() << ".onnx";
   // ORT_THROW_IF_ERROR(inference_session.Load("/home/t-sikris/onnxruntime/model.onnx"));
   ORT_THROW_IF_ERROR(inference_session.Load(filename.str()));
+
+  // Register execution provider
+#ifdef USE_CUDA
+  {
+    OrtCUDAProviderOptions info{
+        gsl::narrow<OrtDevice::DeviceId>(MPIContext::GetInstance().GetLocalRank()),
+        OrtCudnnConvAlgoSearch::EXHAUSTIVE,
+        std::numeric_limits<size_t>::max(),
+        0,
+        true,
+        0,
+        nullptr,
+        nullptr};
+
+    auto factory = CreateExecutionProviderFactory_Cuda(&info);
+    auto input_allocator = CreateCUDAPinnedAllocator(info.device_id, CUDA_PINNED);
+    std::unique_ptr<IExecutionProvider> provider = factory->CreateProvider();
+    ORT_THROW_IF_ERROR(inference_session.RegisterExecutionProvider(std::move(provider)));
+  }
+#endif
+
   ORT_THROW_IF_ERROR(inference_session.Initialize());
 
   // Create random input data
-  // MLValue xValue;
-  // TrainingUtil::CreateCpuMLValue({1, 2}, std::vector<float>{1.0, 1.0}, &xValue);
-  // VectorString feed_names = {"X"};
-  // VectorString fetch_names = {"Z"};
-  // std::vector<MLValue> feeds = {xValue};
-  // std::vector<MLValue> fetches = std::vector<MLValue>();
-  MLValue signalValue;
-  TrainingUtil::CreateCpuMLScalar(true, &signalValue);
-  MLValue srcValue;
-  int64_t srcRank = 0;
-  TrainingUtil::CreateCpuMLScalar(srcRank, &srcValue);
-  MLValue dstValue;
-  int64_t dstRank = 1;
-  TrainingUtil::CreateCpuMLScalar(dstRank, &dstValue);
-  MLValue xValue;
-  TrainingUtil::CreateCpuMLValue({1, 2}, std::vector<float>{1.0, 1.0}, &xValue);
   VectorString feed_names;
-  VectorString fetch_names = {"output_signal"};
+  VectorString fetch_names;
   std::vector<MLValue> feeds;
-  std::vector<MLValue> fetches;
-  if (MPIContext::GetInstance().GetWorldRank() == 0) {
-    feed_names = {"input_signal_token", "dst_rank_token", "X"};
-    feeds = {signalValue, dstValue, xValue};
-    fetches = std::vector<MLValue>();
+  std::vector<MLValue> fetches = std::vector<MLValue>();
+  if (false) {
+    // Add/ReluGrad models
+    MLValue xValue;
+    std::vector<float> xVals(2, 2.0);
+    TrainingUtil::CreateCpuMLValue({1, 2}, xVals, &xValue);
+    feed_names = {"X"};
+    fetch_names = {"Z"};
+    feeds = {xValue};
   } else {
-    feed_names = {"input_signal_token", "src_rank_token"};
-    feeds = {signalValue, srcValue};
-    fetches = std::vector<MLValue>();
+    // Send/recv models
+    MLValue signalValue;
+    TrainingUtil::CreateCpuMLScalar(true, &signalValue);
+    MLValue srcValue;
+    int64_t srcRank = 0;
+    TrainingUtil::CreateCpuMLScalar(srcRank, &srcValue);
+    MLValue dstValue;
+    int64_t dstRank = 1;
+    TrainingUtil::CreateCpuMLScalar(dstRank, &dstValue);
+    MLValue xValue;
+    TrainingUtil::CreateCpuMLValue({1, 2}, std::vector<float>{1.0, 4.0}, &xValue);
+    fetch_names = {"output_signal"};
+    if (MPIContext::GetInstance().GetWorldRank() == 0) {
+      feed_names = {"input_signal_token", "dst_rank_token", "X"};
+      feeds = {signalValue, dstValue, xValue};
+      fetches = std::vector<MLValue>();
+    } else {
+      feed_names = {"input_signal_token", "src_rank_token"};
+      feeds = {signalValue, srcValue};
+      fetches = std::vector<MLValue>();
+    }
   }
+
+  // For debugging mpiruns:
+  // {
+  //   volatile int i = 0;
+  //   printf("Rank %d PID %d ready for attach\n", MPIContext::GetInstance().GetWorldRank(), getpid());
+  //   fflush(stdout);
+  //   while (0 == i)
+  //     sleep(5);
+  // }
+
+  // Create communication plan.
+#if defined(USE_CUDA) && defined(ORT_USE_NCCL) && defined(USE_NCCL_P2P)
+  // TODO scan graph and get plan? Or get from file?
+  auto& nccl_service = cuda::INcclService::GetInstance();
+
+  nccl_service.PlanStart();
+  nccl_service.PlanNewGroupStart();
+  if (MPIContext::GetInstance().GetWorldRank() == 0) {
+    nccl_service.PlanSend(1);
+  } else {
+    nccl_service.PlanRecv(0);
+  }
+  nccl_service.PlanNewGroupEnd();
+  nccl_service.PlanEnd();
+
+  // Launch NCCL service to execute the plan.
+  nccl_service.Launch();
+#endif
 
   // Run the file:
   RunOptions run_options;
@@ -131,6 +189,11 @@ int main() {
       &fetches));
   // status = inference_session.PartialRun(run_options, feeds, fetches, state,
   //   feeds_fetches_manager);
+
+#if defined(USE_CUDA) && defined(ORT_USE_NCCL) && defined(USE_NCCL_P2P)
+  nccl_service.Reset();
+  nccl_service.Terminate();
+#endif
 
   // To see inputs/outputs, build with:
   // --cmake_extra_defines onnxruntime_DEBUG_NODE_INPUTS_OUTPUTS=1
