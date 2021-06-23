@@ -103,7 +103,28 @@ def make_send_recv_test():
     onnx.save_model(model, "model-1.onnx")
 
 
+def make_allreduce_test():
+    node_def = helper.make_node(
+        "NcclAllReduce",
+        ["X"],
+        ["Z"],
+        domain="com.microsoft",
+        group_type=0,  # See training_op_defs.cc. 0 = global group
+    )
+    inputs = [
+        helper.make_tensor_value_info("X", TensorProto.FLOAT, [1, 2]),
+    ]
+    model = make_model(
+        [node_def],
+        inputs,
+        [helper.make_tensor_value_info("Z", TensorProto.FLOAT, [1, 2])],
+    )
+    onnx.save_model(model, "model-0.onnx")
+    onnx.save_model(model, "model-1.onnx")
+
+
 if __name__ == "__main__":
     # make_fwd_test()
     # make_bwd_test()
-    make_send_recv_test()
+    # make_send_recv_test()
+    make_allreduce_test()

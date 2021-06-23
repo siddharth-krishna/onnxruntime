@@ -75,7 +75,18 @@ int main() {
       -1};
 
   auto world_size = MPIContext::GetInstance().GetWorldSize();
+  assert(MPIContext::GetInstance().GetWorldRank() == MPIContext::GetInstance().GetLocalRank());
+  auto rank = MPIContext::GetInstance().GetWorldRank();
   cout << "World size: " << world_size << endl;
+
+  // For debugging mpiruns:
+  // {
+  //   volatile int i = 0;
+  //   printf("Rank %d PID %d ready for attach\n", rank, getpid());
+  //   fflush(stdout);
+  //   while (0 == i)
+  //     sleep(5);
+  // }
 
   // Set up environment
   unique_ptr<Environment> env;
@@ -85,10 +96,13 @@ int main() {
   InferenceSession inference_session{session_options, *env};
 
   // Load the .onnx file
-  std::ostringstream filename;
-  filename << "/home/t-sikris/onnxruntime/model-" << MPIContext::GetInstance().GetWorldRank() << ".onnx";
-  // ORT_THROW_IF_ERROR(inference_session.Load("/home/t-sikris/onnxruntime/model.onnx"));
-  ORT_THROW_IF_ERROR(inference_session.Load(filename.str()));
+  if (world_size > 1) {
+    std::ostringstream filename;
+    filename << "/home/t-sikris/onnxruntime/model-" << rank << ".onnx";
+    ORT_THROW_IF_ERROR(inference_session.Load(filename.str()));
+  } else {
+    ORT_THROW_IF_ERROR(inference_session.Load("/home/t-sikris/onnxruntime/model.onnx"));
+  }
 
   // Register execution provider
 #ifdef USE_CUDA
@@ -110,6 +124,15 @@ int main() {
   }
 #endif
 
+  // Initialize process groups for collective communications
+  DistributedRunContext::CreateInstance({rank,
+                                         world_size,
+                                         rank,
+                                         world_size,
+                                         2,
+                                         1,
+                                         1});
+
   ORT_THROW_IF_ERROR(inference_session.Initialize());
 
   // Create random input data -- TODO get from .onnx file/external file?
@@ -125,7 +148,7 @@ int main() {
     feed_names = {"X"};
     fetch_names = {"Z"};
     feeds = {xValue};
-  } else {
+  } else if (false) {
     // Send/recv models
     MLValue signalValue;
     TrainingUtil::CreateCpuMLScalar(true, &signalValue);
@@ -138,7 +161,7 @@ int main() {
     MLValue xValue;
     TrainingUtil::CreateCpuMLValue({1, 2}, std::vector<float>{1.0, 4.0}, &xValue);
     fetch_names = {"output_signal"};
-    if (MPIContext::GetInstance().GetWorldRank() == 0) {
+    if (rank == 0) {
       feed_names = {"input_signal_token", "dst_rank_token", "X"};
       feeds = {signalValue, dstValue, xValue};
       fetches = std::vector<MLValue>();
@@ -147,34 +170,33 @@ int main() {
       feeds = {signalValue, srcValue};
       fetches = std::vector<MLValue>();
     }
+  } else {
+    // Allreduce models
+    MLValue xValue;
+    std::vector<float> xVals(2, 2.0);
+    TrainingUtil::CreateCpuMLValue({1, 2}, xVals, &xValue);
+    feed_names = {"X"};
+    fetch_names = {"Z"};
+    feeds = {xValue};
   }
-
-  // For debugging mpiruns:
-  // {
-  //   volatile int i = 0;
-  //   printf("Rank %d PID %d ready for attach\n", MPIContext::GetInstance().GetWorldRank(), getpid());
-  //   fflush(stdout);
-  //   while (0 == i)
-  //     sleep(5);
-  // }
 
   // Create communication plan.
 #if defined(USE_CUDA) && defined(ORT_USE_NCCL) && defined(USE_NCCL_P2P)
-  // TODO scan graph and get plan? Or get from file?
-  auto& nccl_service = cuda::INcclService::GetInstance();
+  // // TODO scan graph and get plan? Or get from file?
+  // auto& nccl_service = cuda::INcclService::GetInstance();
 
-  nccl_service.PlanStart();
-  nccl_service.PlanNewGroupStart();
-  if (MPIContext::GetInstance().GetWorldRank() == 0) {
-    nccl_service.PlanSend(1);
-  } else {
-    nccl_service.PlanRecv(0);
-  }
-  nccl_service.PlanNewGroupEnd();
-  nccl_service.PlanEnd();
+  // nccl_service.PlanStart();
+  // nccl_service.PlanNewGroupStart();
+  // if (rank == 0) {
+  //   nccl_service.PlanSend(1);
+  // } else {
+  //   nccl_service.PlanRecv(0);
+  // }
+  // nccl_service.PlanNewGroupEnd();
+  // nccl_service.PlanEnd();
 
-  // Launch NCCL service to execute the plan.
-  nccl_service.Launch();
+  // // Launch NCCL service to execute the plan.
+  // nccl_service.Launch();
 #endif
 
   // Run the file:
@@ -191,8 +213,8 @@ int main() {
   //   feeds_fetches_manager);
 
 #if defined(USE_CUDA) && defined(ORT_USE_NCCL) && defined(USE_NCCL_P2P)
-  nccl_service.Reset();
-  nccl_service.Terminate();
+  // nccl_service.Reset();
+  // nccl_service.Terminate();
 #endif
 
   // To see inputs/outputs, build with:
