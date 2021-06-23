@@ -112,7 +112,7 @@ int main() {
 
   ORT_THROW_IF_ERROR(inference_session.Initialize());
 
-  // Create random input data
+  // Create random input data -- TODO get from .onnx file/external file?
   VectorString feed_names;
   VectorString fetch_names;
   std::vector<MLValue> feeds;
